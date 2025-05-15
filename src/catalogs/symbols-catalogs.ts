@@ -4,7 +4,9 @@ const SymbolsCatalogs = {
   ICatSubCategoryRepository: Symbol.for('ICatSubCategoryRepository'),
   ICatSubCategoryService: Symbol.for('ICatSubCategoryService'),
   ICatColorRepository: Symbol.for('ICatRepository'),
-  ICatColorService: Symbol.for('ICatColor')
+  ICatColorService: Symbol.for('ICatColor'),
+  ICatAssociatedEmotionService: Symbol.for('ICatAssociatedEmotionService'),
+  ICatAssociatedEmotionRepository: Symbol.for('ICatAssociatedEmotionRepository')
 };
 
 export default SymbolsCatalogs;

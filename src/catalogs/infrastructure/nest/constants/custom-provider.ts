@@ -1,7 +1,9 @@
+import { CatAssociatedEmotionService } from '../../../application/services/cat-Associated-emotion.service';
 import { CatColorService } from '../../../application/services/cat-color.service';
 import { CatSubCategoryService } from '../../../application/services/cat-sub-category.service';
 import { CatRoleService } from '../../../application/services/catalogs.service';
 import SymbolsCatalogs from '../../../symbols-catalogs';
+import { CatAssociatedEmotionRepository } from '../../mongo/repositories/cat-associated-emotion.repository';
 import { CatColorRepository } from '../../mongo/repositories/cat-color.repository';
 import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository';
 import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
@@ -22,17 +24,27 @@ export const catSubCategoryService = {
   useClass: CatSubCategoryService
 }
 
-export const catSubCategoryRepository={
+export const catSubCategoryRepository = {
   provide: SymbolsCatalogs.ICatSubCategoryRepository,
   useClass: CatSubCategoryRepository
 }
 
-export const catColorRepository={
+export const catColorRepository = {
   provide: SymbolsCatalogs.ICatColorRepository,
   useClass: CatColorRepository
 }
 
-export const catColorService= {
+export const catColorService = {
   provide: SymbolsCatalogs.ICatColorService,
   useClass: CatColorService
+}
+
+export const catAssociatedEmotionService = {
+  provide: SymbolsCatalogs.ICatAssociatedEmotionService,
+  useClass: CatAssociatedEmotionService
+}
+
+export const catAssociatedEmotionRepository = {
+  provide: SymbolsCatalogs.ICatAssociatedEmotionRepository,
+  useClass: CatAssociatedEmotionRepository
 }
