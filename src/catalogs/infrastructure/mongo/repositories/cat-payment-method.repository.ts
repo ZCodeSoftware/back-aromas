@@ -4,13 +4,13 @@ import { Model } from "mongoose";
 import { BaseErrorException } from "../../../../core/domain/exceptions/base.error.exception";
 import { CatPaymentMethodModel } from "../../../domain/models/cat-payment-method.model";
 import { ICatPaymentMethodRepository } from "../../../domain/repositories/cat-payment-method.repository";
-import { CatAssociatedEmotionSchema } from "../schemas/cat-associated-emotion.schema";
+import { CatPaymentMethodSchema } from "../schemas/cat-payment-method.schema";
 
 
 @Injectable()
 export class CatPaymentMethodRepository implements ICatPaymentMethodRepository {
     constructor(
-        @InjectModel('CatPaymentMethod') private readonly catPaymentMethodDB: Model<CatAssociatedEmotionSchema>
+        @InjectModel('CatPaymentMethod') private readonly catPaymentMethodDB: Model<CatPaymentMethodSchema>
     ) { }
 
     async create(PaymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel> {
