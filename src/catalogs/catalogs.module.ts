@@ -30,12 +30,8 @@ import { CatRoleController } from './infrastructure/nest/controllers/catalogs.co
 import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catPaymentMethodSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatPaymentMethodController],
-
-@Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catTypeHousingSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatTypeHousingController],
+  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catTypeHousingSchema, catPaymentMethodSchema])],
+  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatTypeHousingController, CatPaymentMethodController],
   providers: [
     catRoleRepository,
     catRoleService,
