@@ -7,9 +7,10 @@ const SymbolsCatalogs = {
   ICatColorService: Symbol.for('ICatColor'),
   ICatAssociatedEmotionService: Symbol.for('ICatAssociatedEmotionService'),
   ICatAssociatedEmotionRepository: Symbol.for('ICatAssociatedEmotionRepository'),
+  ICatPaymentMethodService: Symbol.for('ICatPaymentMethodService'),
+  ICatPaymentMethodRepository: Symbol.for('ICatPaymentMethodRepository'),
   ICatTypeHousingService: Symbol.for('ICatTypeHousingService'),
   ICatTypeHousingRepository: Symbol.for('ICatTypeHousingRepository'),
-
 };
 
 export default SymbolsCatalogs;
