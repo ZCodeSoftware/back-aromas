@@ -3,6 +3,7 @@ import { CatColor, CatColorSchema } from '../../../../core/infrastructure/mongo/
 import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
 import { CatRole, CatRoleSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-role.schema';
 import { CatSubCategory, CatSubCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-sub-category.schema';
+import { CatTypeHousing, CatTypeHousingSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-type-housing.schema';
 
 export const catRoleSchema = {
   name: CatRole.name,
@@ -27,4 +28,9 @@ export const catAssociatedEmotionSchema = {
 export const catPaymentMethodSchema = {
   name: CatPaymentMethod.name,
   schema: CatPaymentMethodSchema
+}
+
+export const catTypeHousingSchema = {
+  name: CatTypeHousing.name,
+  schema: CatTypeHousingSchema
 }

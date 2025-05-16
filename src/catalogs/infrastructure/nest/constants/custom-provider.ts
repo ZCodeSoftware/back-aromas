@@ -2,6 +2,7 @@ import { CatAssociatedEmotionService } from '../../../application/services/cat-A
 import { CatColorService } from '../../../application/services/cat-color.service';
 import { CatSubCategoryService } from '../../../application/services/cat-sub-category.service';
 import { CatPaymentMethodService } from '../../../application/services/cat-payment-method.service';
+import { CatTypeHousingService } from '../../../application/services/cat-type-housing.service';
 import { CatRoleService } from '../../../application/services/catalogs.service';
 import SymbolsCatalogs from '../../../symbols-catalogs';
 import { CatAssociatedEmotionRepository } from '../../mongo/repositories/cat-associated-emotion.repository';
@@ -9,6 +10,7 @@ import { CatColorRepository } from '../../mongo/repositories/cat-color.repositor
 import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository';
 import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
 import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
+import { CatTypeHousingRepository } from '../../mongo/repositories/cat-type-housing.repository';
 
 export const catRoleService = {
   provide: SymbolsCatalogs.ICatRoleService,
@@ -60,3 +62,12 @@ export const catPaymentMethodRepository = {
   useClass: CatPaymentMethodRepository
 }
 
+export const catTypeHousingService = {
+  provide: SymbolsCatalogs.ICatTypeHousingService,
+  useClass: CatTypeHousingService
+}
+
+export const catTypeHousingRepository = {
+  provide: SymbolsCatalogs.ICatTypeHousingRepository,
+  useClass: CatTypeHousingRepository
+}
