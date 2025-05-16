@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   catAssociatedEmotionRepository,
   catAssociatedEmotionService,
+  catBrandRepository,
+  catBrandService,
   catColorRepository,
   catColorService,
   catPaymentMethodRepository,
@@ -16,6 +18,7 @@ import {
 } from './infrastructure/nest/constants/custom-provider';
 import {
   catAssociatedEmotionSchema,
+  catBrandSchema,
   catColorSchema,
   catPaymentMethodSchema,
   catRoleSchema,
@@ -28,10 +31,27 @@ import { CatSubCategoryController } from './infrastructure/nest/controllers/cat-
 import { CatPaymentMethodController } from './infrastructure/nest/controllers/cat-payment-method.controller';
 import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
 import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
+import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catTypeHousingSchema, catPaymentMethodSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatTypeHousingController, CatPaymentMethodController],
+  imports: [MongooseModule.forFeature([
+    catRoleSchema,
+    catSubCategorySchema,
+    catColorSchema,
+    catAssociatedEmotionSchema,
+    catTypeHousingSchema,
+    catPaymentMethodSchema,
+    catBrandSchema
+  ])],
+  controllers: [
+    CatRoleController,
+    CatSubCategoryController,
+    CatColorController,
+    CatAssociatedEmotionController,
+    CatTypeHousingController,
+    CatPaymentMethodController,
+    CatBrandController
+  ],
   providers: [
     catRoleRepository,
     catRoleService,
@@ -45,6 +65,8 @@ import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-
     catPaymentMethodService,
     catTypeHousingRepository,
     catTypeHousingService,
+    catBrandRepository,
+    catBrandService,
   ],
   exports: []
 })
