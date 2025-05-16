@@ -2,6 +2,7 @@ import { CatRole, CatRoleSchema } from '../../../../core/infrastructure/mongo/sc
 import { CatColor, CatColorSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-color.schema';
 import { CatSubCategory, CatSubCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-sub-category.schema';
 import { CatAssociatedEmotion, CatAssociatedEmotionSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-associated-emotion.schema';
+import { CatTypeHousing, CatTypeHousingSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-type-housing.schema';
 
 export const catRoleSchema = {
   name: CatRole.name,
@@ -21,4 +22,9 @@ export const catColorSchema = {
 export const catAssociatedEmotionSchema = {
   name: CatAssociatedEmotion.name,
   schema: CatAssociatedEmotionSchema
+}
+
+export const catTypeHousingSchema = {
+  name: CatTypeHousing.name,
+  schema: CatTypeHousingSchema
 }

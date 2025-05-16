@@ -9,21 +9,25 @@ import {
   catRoleService,
   catSubCategoryRepository,
   catSubCategoryService,
+  catTypeHousingRepository,
+  catTypeHousingService,
 } from './infrastructure/nest/constants/custom-provider';
 import {
   catAssociatedEmotionSchema,
   catColorSchema,
   catRoleSchema,
   catSubCategorySchema,
+  catTypeHousingSchema,
 } from './infrastructure/nest/constants/custom-schema';
 import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
 import { CatSubCategoryController } from './infrastructure/nest/controllers/cat-sub-category.controller';
 import { CatColorController } from './infrastructure/nest/controllers/cat-color.controller';
 import { CatAssociatedEmotionController } from './infrastructure/nest/controllers/cat-associated-emotion.controller';
+import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController],
+  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catTypeHousingSchema])],
+  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatTypeHousingController],
   providers: [
     catRoleRepository,
     catRoleService,
@@ -33,6 +37,8 @@ import { CatAssociatedEmotionController } from './infrastructure/nest/controller
     catColorService,
     catAssociatedEmotionRepository,
     catAssociatedEmotionService,
+    catTypeHousingRepository,
+    catTypeHousingService,
   ],
   exports: []
 })
