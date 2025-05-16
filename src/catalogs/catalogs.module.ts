@@ -5,6 +5,8 @@ import {
   catAssociatedEmotionService,
   catColorRepository,
   catColorService,
+  catPaymentMethodRepository,
+  catPaymentMethodService,
   catRoleRepository,
   catRoleService,
   catSubCategoryRepository,
@@ -13,17 +15,19 @@ import {
 import {
   catAssociatedEmotionSchema,
   catColorSchema,
+  catPaymentMethodSchema,
   catRoleSchema,
   catSubCategorySchema,
 } from './infrastructure/nest/constants/custom-schema';
-import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
-import { CatSubCategoryController } from './infrastructure/nest/controllers/cat-sub-category.controller';
-import { CatColorController } from './infrastructure/nest/controllers/cat-color.controller';
 import { CatAssociatedEmotionController } from './infrastructure/nest/controllers/cat-associated-emotion.controller';
+import { CatColorController } from './infrastructure/nest/controllers/cat-color.controller';
+import { CatSubCategoryController } from './infrastructure/nest/controllers/cat-sub-category.controller';
+import { CatPaymentMethodController } from './infrastructure/nest/controllers/cat-payment-method.controller';
+import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController],
+  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catPaymentMethodSchema])],
+  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatPaymentMethodController],
   providers: [
     catRoleRepository,
     catRoleService,
@@ -33,6 +37,8 @@ import { CatAssociatedEmotionController } from './infrastructure/nest/controller
     catColorService,
     catAssociatedEmotionRepository,
     catAssociatedEmotionService,
+    catPaymentMethodRepository,
+    catPaymentMethodService,
   ],
   exports: []
 })
