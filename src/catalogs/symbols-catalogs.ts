@@ -13,6 +13,8 @@ const SymbolsCatalogs = {
   ICatTypeHousingRepository: Symbol.for('ICatTypeHousingRepository'),
   ICatEssenceService: Symbol.for('ICatEssenceService'),
   ICatEssenceRepository: Symbol.for('ICatEssenceRepository'),
+  ICatBrandService: Symbol.for('ICatBrandService'),
+  ICatBrandRepository: Symbol.for('ICatBrandRepository'),
 };
 
 export default SymbolsCatalogs;

@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   catAssociatedEmotionRepository,
   catAssociatedEmotionService,
+  catBrandRepository,
+  catBrandService,
   catColorRepository,
   catColorService,
   catEssenceRepository,
@@ -18,6 +20,7 @@ import {
 } from './infrastructure/nest/constants/custom-provider';
 import {
   catAssociatedEmotionSchema,
+  catBrandSchema,
   catColorSchema,
   catEssenceSchema,
   catPaymentMethodSchema,
@@ -32,10 +35,29 @@ import { CatPaymentMethodController } from './infrastructure/nest/controllers/ca
 import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
 import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
 import { CatEssenceController } from './infrastructure/nest/controllers/cat-essence.controller';
+import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([catRoleSchema, catSubCategorySchema, catColorSchema, catAssociatedEmotionSchema, catTypeHousingSchema, catPaymentMethodSchema, catEssenceSchema])],
-  controllers: [CatRoleController, CatSubCategoryController, CatColorController, CatAssociatedEmotionController, CatTypeHousingController, CatPaymentMethodController, CatEssenceController],
+  imports: [MongooseModule.forFeature([
+    catRoleSchema,
+    catSubCategorySchema,
+    catColorSchema,
+    catAssociatedEmotionSchema,
+    catTypeHousingSchema,
+    catPaymentMethodSchema,
+    catBrandSchema,
+    catEssenceSchema,
+  ])],
+  controllers: [
+    CatRoleController,
+    CatSubCategoryController,
+    CatColorController,
+    CatAssociatedEmotionController,
+    CatTypeHousingController,
+    CatPaymentMethodController,
+    CatBrandController,
+    CatEssenceController,
+  ],
   providers: [
     catRoleRepository,
     catRoleService,
@@ -49,8 +71,10 @@ import { CatEssenceController } from './infrastructure/nest/controllers/cat-esse
     catPaymentMethodService,
     catTypeHousingRepository,
     catTypeHousingService,
-    catEssenceService,
+    catBrandRepository,
+    catBrandService,
     catEssenceRepository,
+    catEssenceService,
   ],
   exports: []
 })
