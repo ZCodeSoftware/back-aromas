@@ -11,6 +11,8 @@ import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository'
 import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
 import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
 import { CatTypeHousingRepository } from '../../mongo/repositories/cat-type-housing.repository';
+import { CatEssenceService } from '../../../application/services/cat-essence.service';
+import { CatEssenceRepository } from '../../mongo/repositories/cat-essence.repository';
 import { CatBrandService } from '../../../application/services/cat-brand.service';
 import { CatBrandRepository } from '../../mongo/repositories/cat-brand.repository';
 
@@ -74,6 +76,14 @@ export const catTypeHousingRepository = {
   useClass: CatTypeHousingRepository
 }
 
+export const catEssenceService = {
+  provide: SymbolsCatalogs.ICatEssenceService,
+  useClass: CatEssenceService
+}
+export const catEssenceRepository = {
+  provide: SymbolsCatalogs.ICatEssenceRepository,
+  useClass: CatEssenceRepository
+}
 export const catBrandService = {
   provide: SymbolsCatalogs.ICatBrandService,
   useClass: CatBrandService
