@@ -7,6 +7,8 @@ import {
   catBrandService,
   catColorRepository,
   catColorService,
+  catEssenceRepository,
+  catEssenceService,
   catPaymentMethodRepository,
   catPaymentMethodService,
   catRoleRepository,
@@ -20,6 +22,7 @@ import {
   catAssociatedEmotionSchema,
   catBrandSchema,
   catColorSchema,
+  catEssenceSchema,
   catPaymentMethodSchema,
   catRoleSchema,
   catSubCategorySchema,
@@ -31,6 +34,7 @@ import { CatSubCategoryController } from './infrastructure/nest/controllers/cat-
 import { CatPaymentMethodController } from './infrastructure/nest/controllers/cat-payment-method.controller';
 import { CatRoleController } from './infrastructure/nest/controllers/catalogs.controller';
 import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
+import { CatEssenceController } from './infrastructure/nest/controllers/cat-essence.controller';
 import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.controller';
 
 @Module({
@@ -41,7 +45,8 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     catAssociatedEmotionSchema,
     catTypeHousingSchema,
     catPaymentMethodSchema,
-    catBrandSchema
+    catBrandSchema,
+    catEssenceSchema,
   ])],
   controllers: [
     CatRoleController,
@@ -50,7 +55,8 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     CatAssociatedEmotionController,
     CatTypeHousingController,
     CatPaymentMethodController,
-    CatBrandController
+    CatBrandController,
+    CatEssenceController,
   ],
   providers: [
     catRoleRepository,
@@ -67,6 +73,8 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     catTypeHousingService,
     catBrandRepository,
     catBrandService,
+    catEssenceRepository,
+    catEssenceService,
   ],
   exports: []
 })
