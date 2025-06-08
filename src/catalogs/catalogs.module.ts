@@ -5,6 +5,8 @@ import {
   catAssociatedEmotionService,
   catBrandRepository,
   catBrandService,
+  catCategoryRepository,
+  catCategoryService,
   catColorRepository,
   catColorService,
   catEssenceRepository,
@@ -21,6 +23,7 @@ import {
 import {
   catAssociatedEmotionSchema,
   catBrandSchema,
+  catCategorySchema,
   catColorSchema,
   catEssenceSchema,
   catPaymentMethodSchema,
@@ -36,6 +39,7 @@ import { CatRoleController } from './infrastructure/nest/controllers/catalogs.co
 import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-type-housing.controller';
 import { CatEssenceController } from './infrastructure/nest/controllers/cat-essence.controller';
 import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.controller';
+import { CatCategoryContorller } from './infrastructure/nest/controllers/cat-category.controller';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -47,6 +51,7 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     catPaymentMethodSchema,
     catBrandSchema,
     catEssenceSchema,
+    catCategorySchema
   ])],
   controllers: [
     CatRoleController,
@@ -57,6 +62,7 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     CatPaymentMethodController,
     CatBrandController,
     CatEssenceController,
+    CatCategoryContorller,
   ],
   providers: [
     catRoleRepository,
@@ -75,6 +81,8 @@ import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.
     catBrandService,
     catEssenceRepository,
     catEssenceService,
+    catCategoryRepository,
+    catCategoryService
   ],
   exports: []
 })
