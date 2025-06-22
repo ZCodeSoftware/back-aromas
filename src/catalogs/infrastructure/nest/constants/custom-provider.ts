@@ -15,6 +15,8 @@ import { CatEssenceService } from '../../../application/services/cat-essence.ser
 import { CatEssenceRepository } from '../../mongo/repositories/cat-essence.repository';
 import { CatBrandService } from '../../../application/services/cat-brand.service';
 import { CatBrandRepository } from '../../mongo/repositories/cat-brand.repository';
+import { CatCategoryRepository } from '../../mongo/repositories/cat-category.repository';
+import { CatCategoryService } from '../../../application/services/cat-category.service';
 
 export const catRoleService = {
   provide: SymbolsCatalogs.ICatRoleService,
@@ -92,4 +94,13 @@ export const catBrandService = {
 export const catBrandRepository = {
   provide: SymbolsCatalogs.ICatBrandRepository,
   useClass: CatBrandRepository
+}
+
+export const catCategoryRepository ={
+  provide:SymbolsCatalogs.ICatCategoryRepository,
+  useClass: CatCategoryRepository
+}
+export const catCategoryService ={
+  provide:SymbolsCatalogs.ICatCategoryService,
+  useClass: CatCategoryService
 }
