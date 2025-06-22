@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ApiKeyGuard } from './auth/infrastructure/nest/guards/api-key.guard';
 import { CatalogsModule } from './catalogs/catalogs.module';
 import { CoreModule } from './core/core.module';
+import { ProductModule } from './product/product.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -17,7 +18,8 @@ import { UserModule } from './user/user.module';
     CoreModule,
     UserModule,
     AuthModule,
-    CatalogsModule
+    CatalogsModule,
+    ProductModule
   ],
   controllers: [AppController],
   providers: [AppService,
