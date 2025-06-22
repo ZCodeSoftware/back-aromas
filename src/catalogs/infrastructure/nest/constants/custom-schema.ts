@@ -1,5 +1,6 @@
 import { CatAssociatedEmotion, CatAssociatedEmotionSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-associated-emotion.schema';
 import { CatBrand, CatBrandSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-brand.schema';
+import { CatCategory, CatCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-category.schema';
 import { CatColor, CatColorSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-color.schema';
 import { CatEssence, CatEssenceSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-essence.schema';
 import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
@@ -44,4 +45,9 @@ export const catEssenceSchema = {
 export const catBrandSchema = {
   name: CatBrand.name,
   schema: CatBrandSchema
+}
+
+export const catCategorySchema = {
+  name: CatCategory.name,
+  schema: CatCategorySchema,
 }
