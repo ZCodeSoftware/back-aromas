@@ -1,9 +1,9 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
-import SymbolsCatalogs from "../../../symbols-catalogs";
-import { ICatCategoryService } from "../../../domain/services/cat-category.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { ICatCategoryService } from "../../../domain/services/cat-category.service";
+import SymbolsCatalogs from "../../../symbols-catalogs";
 import { CreateCategoryDTO } from "../dtos/cat-category.dto";
 
 

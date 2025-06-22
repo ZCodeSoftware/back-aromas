@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { CatAssociatedEmotion } from "../catalogs/cat-associated-emotion.schema";
 import { CatBrand } from "../catalogs/cat-brand.schema";
+import { CatCategory } from "../catalogs/cat-category.schema";
 import { CatColor } from "../catalogs/cat-color.schema";
 import { CatEssence } from "../catalogs/cat-essence.schema";
 import { CatSubCategory } from "../catalogs/cat-sub-category.schema";
@@ -39,6 +40,9 @@ export class Product {
 
     @Prop({ required: false, name: 'brand', type: mongoose.Schema.Types.ObjectId, ref: 'CatBrand' })
     brand: CatBrand;
+
+    @Prop({ required: true, name: 'category', type: mongoose.Schema.Types.ObjectId, ref: 'CatCategory' })
+    category: CatCategory;
 
     @Prop({ required: false, name: 'sub_category', type: mongoose.Schema.Types.ObjectId, ref: 'CatSubCategory' })
     subCategory: CatSubCategory;

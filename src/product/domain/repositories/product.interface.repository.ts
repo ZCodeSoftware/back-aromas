@@ -6,4 +6,5 @@ export interface IProductRepository {
     create(product: ProductModel): Promise<ProductModel>;
     findById(id: string): Promise<ProductModel>;
     findAll(options: FilterOptionsDTO): Promise<PaginatedResponse<ProductModel>>
+    update(id: string, product: ProductModel): Promise<ProductModel>;
 }

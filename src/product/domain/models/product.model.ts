@@ -2,6 +2,7 @@ import { BaseModel } from '../../../core/domain/models/base.model';
 import { Identifier } from '../../../core/domain/value-objects/identifier';
 import { CatAssociatedEmotionModel } from './cat-associated-emotion.model';
 import { CatBrandModel } from './cat-brand.model';
+import { CatCategoryModel } from './cat-category.model';
 import { CatColorModel } from './cat-color.model';
 import { CatEssenceModel } from './cat-essence.model';
 import { CatSubCategoryModel } from './cat-sub-cartegory.model';
@@ -17,6 +18,7 @@ export class ProductModel extends BaseModel {
   private _essence?: CatEssenceModel;
   private _associatedEmotion?: CatAssociatedEmotionModel;
   private _brand?: CatBrandModel;
+  private _category: CatCategoryModel
   private _subCategory?: CatSubCategoryModel;
 
   addColor(color: CatColorModel): void {
@@ -33,6 +35,10 @@ export class ProductModel extends BaseModel {
 
   addBrand(brand: CatBrandModel): void {
     this._brand = brand;
+  }
+
+  addCategory(category: CatCategoryModel): void {
+    this._category = category;
   }
 
   addSubCategory(subCategory: CatSubCategoryModel): void {
@@ -53,6 +59,7 @@ export class ProductModel extends BaseModel {
       essence: this._essence ? this._essence.toJSON() : null,
       associatedEmotion: this._associatedEmotion ? this._associatedEmotion.toJSON() : null,
       brand: this._brand ? this._brand.toJSON() : null,
+      category: this._category.toJSON(),
       subCategory: this._subCategory ? this._subCategory.toJSON() : null,
     };
   }
@@ -81,6 +88,7 @@ export class ProductModel extends BaseModel {
     newProduct._essence = product.essence ? CatEssenceModel.hydrate(product.essence) : null;
     newProduct._associatedEmotion = product.associatedEmotion ? CatAssociatedEmotionModel.hydrate(product.associatedEmotion) : null;
     newProduct._brand = product.brand ? CatBrandModel.hydrate(product.brand) : null;
+    newProduct._category = CatCategoryModel.hydrate(product.category);
     newProduct._subCategory = product.subCategory ? CatSubCategoryModel.hydrate(product.subCategory) : null;
 
     return newProduct;

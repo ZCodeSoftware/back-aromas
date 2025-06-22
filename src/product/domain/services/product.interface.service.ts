@@ -7,4 +7,5 @@ export interface IProductService {
     create(product: ICreateProduct): Promise<ProductModel>;
     findById(id: string): Promise<ProductModel>;
     findAll(options: FilterOptions): Promise<PaginatedResponse<ProductModel>>
+    update(id: string, product: Partial<ICreateProduct>): Promise<ProductModel>;
 }

@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { BaseErrorException } from "../../../../core/domain/exceptions/base.error.exception";
 import { PaginatedResponse } from "../../../../core/domain/response/find-all-paginated.response";
+import { PRODUCT_RELATIONS } from "../../../../core/infrastructure/nest/constants/relations.constant";
 import { SortByFields } from "../../../domain/enum/sort-by-fields.enum";
 import { SortOrder } from "../../../domain/enum/sort-order.enum";
 import { ProductModel } from "../../../domain/models/product.model";
@@ -105,6 +106,7 @@ export class ProductRepository implements IProductRepository {
         const products = await this.productDB
             .find(filters)
             .populate('associatedEmotion essence brand color subCategory')
+            .populate({ path: 'category', select: 'name _id' })
             .skip(skip)
             .limit(itemsPerPage)
             .sort(sortObject);
@@ -122,5 +124,24 @@ export class ProductRepository implements IProductRepository {
                 hasPrevPage: currentPage > 1
             }
         };
+    }
+
+    async update(id: string, product: Partial<ProductModel>): Promise<ProductModel> {
+        const updateObject = product.toJSON();
+        const filteredUpdateObject = Object.fromEntries(
+            Object.entries(updateObject).filter(([key, value]) => {
+                if (PRODUCT_RELATIONS.includes(key)) {
+                    return (value !== null && value !== undefined && typeof value === 'object');
+                }
+                return value !== null && value !== undefined;
+            })
+        );
+        const productToUpdate = await this.productDB.findByIdAndUpdate(id, filteredUpdateObject, { new: true, omitUndefined: true })
+            .populate('associatedEmotion essence brand color subCategory')
+            .populate({ path: 'category', select: 'name _id' });
+
+        if (!productToUpdate) throw new BaseErrorException(`Product shouldn't be updated`, HttpStatus.BAD_REQUEST);
+
+        return ProductModel.hydrate(productToUpdate);
     }
 }

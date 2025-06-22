@@ -8,5 +8,6 @@ export interface ICreateProduct {
     essence?: string;
     associatedEmotion?: string;
     brand?: string;
+    category: string;
     subCategory?: string;
 };

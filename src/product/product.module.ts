@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   catAssociatedEmotionRepository,
   catBrandRepository,
+  catCategoryRepository,
   catColorRepository,
   catEssenceRepository,
   catSubCategoryRepository,
@@ -12,6 +13,7 @@ import {
 import {
   catAssociatedEmotionSchema,
   catBrandSchema,
+  catCategorySchema,
   catColorSchema,
   catEssenceSchema,
   catSubCategorySchema,
@@ -20,9 +22,9 @@ import {
 import { ProductController } from './infrastructure/nest/controllers/product.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([productSchema, catBrandSchema, catEssenceSchema, catColorSchema, catSubCategorySchema, catAssociatedEmotionSchema])],
+  imports: [MongooseModule.forFeature([productSchema, catBrandSchema, catEssenceSchema, catColorSchema, catCategorySchema, catSubCategorySchema, catAssociatedEmotionSchema])],
   controllers: [ProductController],
-  providers: [productService, productRepository, catBrandRepository, catAssociatedEmotionRepository, catEssenceRepository, catColorRepository, catSubCategoryRepository],
+  providers: [productService, productRepository, catBrandRepository, catAssociatedEmotionRepository, catEssenceRepository, catColorRepository, catCategoryRepository, catSubCategoryRepository],
   exports: []
 })
 export class ProductModule { }

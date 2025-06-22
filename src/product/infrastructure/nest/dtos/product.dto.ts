@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { IsArray, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, } from "class-validator";
 
 export class CreateProductDTO {
@@ -114,6 +114,17 @@ export class CreateProductDTO {
     })
     brand?: string;
 
+    @IsMongoId()
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'ID of the category associated with the product',
+        example: '60c72b2f9b1e8b001c8e4d5f',
+        type: String,
+        required: true,
+        name: 'category'
+    })
+    category: string;
+
     @IsOptional()
     @IsMongoId()
     @ApiPropertyOptional({
@@ -125,3 +136,5 @@ export class CreateProductDTO {
     })
     subCategory?: string;
 }
+
+export class UpdateProductDTO extends PartialType(CreateProductDTO) { }
