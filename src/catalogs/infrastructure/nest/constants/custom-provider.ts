@@ -1,22 +1,22 @@
-import { CatAssociatedEmotionService } from '../../../application/services/cat-Associated-emotion.service';
+import { CatAssociatedEmotionService } from '../../../application/services/cat-associated-emotion.service';
+import { CatBrandService } from '../../../application/services/cat-brand.service';
+import { CatCategoryService } from '../../../application/services/cat-category.service';
 import { CatColorService } from '../../../application/services/cat-color.service';
-import { CatSubCategoryService } from '../../../application/services/cat-sub-category.service';
+import { CatEssenceService } from '../../../application/services/cat-essence.service';
 import { CatPaymentMethodService } from '../../../application/services/cat-payment-method.service';
+import { CatSubCategoryService } from '../../../application/services/cat-sub-category.service';
 import { CatTypeHousingService } from '../../../application/services/cat-type-housing.service';
 import { CatRoleService } from '../../../application/services/catalogs.service';
 import SymbolsCatalogs from '../../../symbols-catalogs';
 import { CatAssociatedEmotionRepository } from '../../mongo/repositories/cat-associated-emotion.repository';
-import { CatColorRepository } from '../../mongo/repositories/cat-color.repository';
-import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository';
-import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
-import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
-import { CatTypeHousingRepository } from '../../mongo/repositories/cat-type-housing.repository';
-import { CatEssenceService } from '../../../application/services/cat-essence.service';
-import { CatEssenceRepository } from '../../mongo/repositories/cat-essence.repository';
-import { CatBrandService } from '../../../application/services/cat-brand.service';
 import { CatBrandRepository } from '../../mongo/repositories/cat-brand.repository';
 import { CatCategoryRepository } from '../../mongo/repositories/cat-category.repository';
-import { CatCategoryService } from '../../../application/services/cat-category.service';
+import { CatColorRepository } from '../../mongo/repositories/cat-color.repository';
+import { CatEssenceRepository } from '../../mongo/repositories/cat-essence.repository';
+import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
+import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository';
+import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
+import { CatTypeHousingRepository } from '../../mongo/repositories/cat-type-housing.repository';
 
 export const catRoleService = {
   provide: SymbolsCatalogs.ICatRoleService,
@@ -96,11 +96,11 @@ export const catBrandRepository = {
   useClass: CatBrandRepository
 }
 
-export const catCategoryRepository ={
-  provide:SymbolsCatalogs.ICatCategoryRepository,
+export const catCategoryRepository = {
+  provide: SymbolsCatalogs.ICatCategoryRepository,
   useClass: CatCategoryRepository
 }
-export const catCategoryService ={
-  provide:SymbolsCatalogs.ICatCategoryService,
+export const catCategoryService = {
+  provide: SymbolsCatalogs.ICatCategoryService,
   useClass: CatCategoryService
 }
