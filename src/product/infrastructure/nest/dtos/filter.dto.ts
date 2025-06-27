@@ -117,49 +117,70 @@ export class FilterOptionsDTO {
     hasStock?: boolean;
 
     @IsOptional()
-    @IsMongoId()
+    @IsMongoId({ each: true })
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
     @ApiPropertyOptional({
-        description: 'Filter by brand ID',
-        example: '60c72b2f9b1e8b001c8e4d5d',
-        type: String
+        description: 'Filter by brand IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5d', '60c72b2f9b1e8b001c8e4d5e'],
+        type: [String],
+        isArray: true
     })
-    brandId?: string;
+    brandId?: string[];
 
     @IsOptional()
-    @IsMongoId()
+    @IsMongoId({ each: true })
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
     @ApiPropertyOptional({
-        description: 'Filter by color ID',
-        example: '60c72b2f9b1e8b001c8e4d5a',
-        type: String
+        description: 'Filter by color IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5a', '60c72b2f9b1e8b001c8e4d5b'],
+        type: [String],
+        isArray: true
     })
-    colorId?: string;
+    colorId?: string[];
 
     @IsOptional()
-    @IsMongoId()
+    @IsMongoId({ each: true })
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
     @ApiPropertyOptional({
-        description: 'Filter by essence ID',
-        example: '60c72b2f9b1e8b001c8e4d5b',
-        type: String
+        description: 'Filter by essence IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5b', '60c72b2f9b1e8b001c8e4d5c'],
+        type: [String],
+        isArray: true
     })
-    essenceId?: string;
+    essenceId?: string[];
 
     @IsOptional()
-    @IsMongoId()
+    @IsMongoId({ each: true })
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
     @ApiPropertyOptional({
-        description: 'Filter by associated emotion ID',
-        example: '60c72b2f9b1e8b001c8e4d5c',
-        type: String
+        description: 'Filter by associated emotion IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5c', '60c72b2f9b1e8b001c8e4d5d'],
+        type: [String],
+        isArray: true
     })
-    associatedEmotionId?: string;
+    associatedEmotionId?: string[];
 
     @IsOptional()
-    @IsMongoId()
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
+    @IsMongoId({ each: true })
     @ApiPropertyOptional({
-        description: 'Filter by sub-category ID',
-        example: '60c72b2f9b1e8b001c8e4d5e',
-        type: String
+        description: 'Filter by category IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5d', '60c72b2f9b1e8b001c8e4d5e'],
+        type: [String],
+        isArray: true
     })
-    subCategoryId?: string;
+    categoryId?: string[];
+
+    @IsOptional()
+    @IsMongoId({ each: true })
+    @Transform(({ value }) => Array.isArray(JSON.parse(value)) ? JSON.parse(value) : [value].filter(Boolean))
+    @ApiPropertyOptional({
+        description: 'Filter by sub-category IDs',
+        example: ['60c72b2f9b1e8b001c8e4d5e', '60c72b2f9b1e8b001c8e4d5f'],
+        type: [String],
+        isArray: true
+    })
+    subCategoryId?: string[];
 
     @IsOptional()
     @IsNumber()

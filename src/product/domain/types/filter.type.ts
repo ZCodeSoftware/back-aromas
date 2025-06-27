@@ -9,9 +9,10 @@ export interface FilterOptions {
     sortOrder?: SortOrder;
     isActive?: boolean;
     search?: string;
-    categoryId?: string;
-    brandId?: string;
-    colorId?: string;
-    essenceId?: string;
-    associatedEmotionId?: string;
+    categoryId?: string[];
+    subCategoryId?: string[];
+    brandId?: string[];
+    colorId?: string[];
+    essenceId?: string[];
+    associatedEmotionId?: string[];
 }
