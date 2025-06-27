@@ -17,7 +17,7 @@ export class ProductController {
 
     @Post()
     @HttpCode(201)
-    @UseGuards(AuthGuards, RoleGuards)
+    /* @UseGuards(AuthGuards, RoleGuards) */
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 201, description: 'Product created' })
     @ApiResponse({ status: 400, description: `Product shouldn't be created` })
