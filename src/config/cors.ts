@@ -8,6 +8,7 @@ if (config().app.env === 'dev') {
 
 const whiteList = [
     ...whiteListDev,
+    "https://front-aromas.vercel.app"
 ];
 
 export const corsOptions = {
