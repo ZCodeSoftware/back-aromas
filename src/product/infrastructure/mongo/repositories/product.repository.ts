@@ -49,6 +49,7 @@ export class ProductRepository implements IProductRepository {
             colorId,
             essenceId,
             associatedEmotionId,
+            categoryId,
             subCategoryId,
             stockMin,
             stockMax
@@ -91,11 +92,12 @@ export class ProductRepository implements IProductRepository {
             if (stockMax !== undefined) filters.stock.$lte = stockMax;
         }
 
-        if (brandId) filters.brand = brandId;
-        if (colorId) filters.color = colorId;
-        if (essenceId) filters.essence = essenceId;
-        if (associatedEmotionId) filters.associated_emotion = associatedEmotionId;
-        if (subCategoryId) filters.sub_category = subCategoryId;
+        if (brandId) filters.brand = { $in: brandId };
+        if (colorId) filters.color = { $in: colorId };
+        if (essenceId) filters.essence = { $in: essenceId };
+        if (associatedEmotionId) filters.associatedEmotion = { $in: associatedEmotionId };
+        if (categoryId) filters.category = { $in: categoryId };
+        if (subCategoryId) filters.subCategory = { $in: subCategoryId };
 
         const sortObject: any = {};
         sortObject[sortBy] = sortOrder === SortOrder.DESC ? -1 : 1;
