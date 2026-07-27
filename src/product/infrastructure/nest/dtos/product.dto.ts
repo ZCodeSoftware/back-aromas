@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
-import { IsArray, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, } from "class-validator";
+import { IsArray, IsBoolean, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, } from "class-validator";
 
 export class CreateProductDTO {
     @IsString()
@@ -137,4 +137,15 @@ export class CreateProductDTO {
     subCategory?: string;
 }
 
-export class UpdateProductDTO extends PartialType(CreateProductDTO) { }
+export class UpdateProductDTO extends PartialType(CreateProductDTO) {
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Indicates if the product is active',
+        example: true,
+        type: Boolean,
+        required: false,
+        name: 'isActive'
+    })
+    isActive?: boolean;
+}

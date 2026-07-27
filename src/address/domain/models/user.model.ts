@@ -1,10 +1,6 @@
-import { HttpStatus } from '@nestjs/common';
-import { BaseErrorException } from '../../../core/domain/exceptions/base.error.exception';
 import { BaseModel } from '../../../core/domain/models/base.model';
-import { hashPassword } from '../../../core/domain/utils/bcrypt.util';
 import { Identifier } from '../../../core/domain/value-objects/identifier';
 import { AddressModel } from './address.model';
-import { CatRoleModel } from './cat-role.model';
 
 export class UserModel extends BaseModel {
   private _email: string;
@@ -14,26 +10,16 @@ export class UserModel extends BaseModel {
   private _isActive: boolean;
   private _phone: string;
   private _newsletter: boolean;
-  private _roles: CatRoleModel[];
   private _address?: AddressModel[];
 
-  static async hashPassword(password: string): Promise<string> {
-    const hashedPassword = await hashPassword(password);
-    if (!hashedPassword) {
-      throw new BaseErrorException('Error hashing password', HttpStatus.INTERNAL_SERVER_ERROR);
+  addAddress(address: AddressModel): void {
+    if (!this._address) {
+      this._address = [];
     }
-    return hashedPassword;
-  }
-
-  addRole(role: CatRoleModel): void {
-    if (!this._roles) {
-      this._roles = [];
+    const existingAddress = this._address.find((addr) => addr.toJSON()._id === address.toJSON()._id);
+    if (!existingAddress) {
+      this._address.push(address);
     }
-    const existingRole = this._roles.find((r) => r.toJSON()._id === role.toJSON()._id);
-    if (existingRole) {
-      throw new BaseErrorException('Role already exists', HttpStatus.BAD_REQUEST);
-    }
-    this._roles.push(role);
   }
 
   public toJSON() {
@@ -47,7 +33,6 @@ export class UserModel extends BaseModel {
       phone: this._phone,
       isActive: this._isActive,
       newsletter: this._newsletter,
-      roles: this._roles ? this._roles.map((role) => role.toJSON()) : [],
       address: this._address ? this._address.map((addr) => addr.toJSON()) : [],
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
@@ -76,8 +61,9 @@ export class UserModel extends BaseModel {
     newUser._phone = user.phone;
     newUser._isActive = user.isActive;
     newUser._newsletter = user.newsletter;
-    newUser._roles = user.roles ? user.roles.map((role: CatRoleModel) => CatRoleModel.hydrate(role)) : [];
-    newUser._address = user.address ? user.address.map((addr: any) => AddressModel.hydrate(addr)) : [];
+    if (user.address) {
+      newUser._address = user.address.map((addr: any) => AddressModel.hydrate(addr));
+    }
     newUser._createdAt = user.createdAt;
     newUser._updatedAt = user.updatedAt;
 
