@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { CatRole } from "../catalogs/cat-role.schema";
+import { Address } from "./address.schema";
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -34,6 +35,14 @@ export class User {
         default: [],
     })
     roles: CatRole[];
+
+    @Prop({
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Address' }],
+        required: false,
+        name: 'address',
+        default: [],
+    })
+    address?: Address[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

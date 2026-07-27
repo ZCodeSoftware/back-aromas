@@ -22,19 +22,19 @@ export class UserRepository implements IUserRepository {
     }
 
     async findById(id: string): Promise<UserModel> {
-        const user = await this.userDB.findById(id).populate('roles');
+        const user = await this.userDB.findById(id).populate('roles addresss');
         if (!user) throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
         return UserModel.hydrate(user);
     }
 
     async findByEmail(email: string): Promise<UserModel> {
-        const user = await this.userDB.findOne({ email }).populate('roles');
+        const user = await this.userDB.findOne({ email }).populate('roles address');
         if (!user) return null;
         return UserModel.hydrate(user);
     }
 
     async findAll(): Promise<UserModel[]> {
-        const users = await this.userDB.find().populate('roles');
+        const users = await this.userDB.find().populate('roles address');
         return users?.map(user => UserModel.hydrate(user));
     }
 }
