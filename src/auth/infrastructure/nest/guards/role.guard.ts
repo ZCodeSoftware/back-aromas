@@ -38,7 +38,15 @@ export class RoleGuards implements CanActivate {
       context.getClass(),
     ]) ?? [TypeRoles.ADMIN];
 
-    if (!requiredRoles.length) return true;
+    // An empty @Roles() list is always a mistake: this guard exists to restrict,
+    // so it must never be the thing that waves a request through. A route open to
+    // any authenticated user should use AuthGuards on its own.
+    if (!requiredRoles.length) {
+      throw new BaseErrorException(
+        'Access denied: no roles declared for this route.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
 
     const foundUser = await this.userService.findById(user._id);
     const userRoles = foundUser.toJSON().roles ?? [];

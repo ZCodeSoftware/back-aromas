@@ -56,3 +56,6 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+/** Inventory reports: stock summary, low/out-of-stock lists and the dead-stock anti-join all filter on both. */
+ProductSchema.index({ isActive: 1, stock: 1 });

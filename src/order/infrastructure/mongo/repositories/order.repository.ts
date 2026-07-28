@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { BaseErrorException } from "../../../../core/domain/exceptions/base.error.exception";
 import { PaginatedResponse } from "../../../../core/domain/response/find-all-paginated.response";
+import { OrderChannel } from "../../../domain/enum/order-channel.enum";
 import { PURCHASED_STATUSES } from "../../../domain/enum/order-status.enum";
 import { OrderModel } from "../../../domain/models/order.model";
 import { IOrderRepository } from "../../../domain/repositories/order.interface.repository";
@@ -12,6 +13,7 @@ import { OrderSchema } from "../schemas/order.schema";
 const ORDER_POPULATE = [
     { path: 'paymentMethod', select: 'name _id' },
     { path: 'items.product', select: 'name images _id' },
+    { path: 'soldBy', select: 'firstName lastName _id' },
 ];
 
 @Injectable()
@@ -38,7 +40,7 @@ export class OrderRepository implements IOrderRepository {
     }
 
     async findAll(options: IOrderFilterOptions): Promise<PaginatedResponse<OrderModel>> {
-        const { page = 1, limit = 10, status, userId, dateFrom, dateTo } = options;
+        const { page = 1, limit = 10, status, userId, dateFrom, dateTo, channel, soldBy } = options;
 
         const currentPage = Math.max(1, page);
         const itemsPerPage = Math.min(Math.max(1, limit), 100);
@@ -47,6 +49,14 @@ export class OrderRepository implements IOrderRepository {
         const filters: any = {};
         if (status) filters.status = status;
         if (userId) filters.user = userId;
+        if (soldBy) filters.soldBy = soldBy;
+        if (channel === OrderChannel.POS) {
+            filters.channel = OrderChannel.POS;
+        } else if (channel === OrderChannel.ONLINE) {
+            // Orders written before the channel field existed have no such key, and
+            // in MongoDB `null` matches a missing field as well as an explicit null.
+            filters.channel = { $in: [OrderChannel.ONLINE, null] };
+        }
         if (dateFrom || dateTo) {
             filters.createdAt = {};
             if (dateFrom) filters.createdAt.$gte = dateFrom;

@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { IMetricsRepository } from "../../../domain/repositories/metrics.interface.repository";
-import { IProductMetrics, ITopProduct } from "../../../domain/types/analytics.type";
+import { ILifetimeCounters, IProductMetrics, ITopProduct } from "../../../domain/types/analytics.type";
 import { MetricsSchema } from "../schemas/metrics.schema";
 
 @Injectable()
@@ -54,6 +54,25 @@ export class MetricsRepository implements IMetricsRepository {
             product: this.toProductRef(row.product),
             value: row[field] as number,
         }));
+    }
+
+    async getLifetimeTotals(): Promise<ILifetimeCounters> {
+        const rows = await this.metricsDB.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    seeTimes: { $sum: '$seeTimes' },
+                    sellTimes: { $sum: '$sellTimes' },
+                    addCartTimes: { $sum: '$addCartTimes' },
+                },
+            },
+        ]);
+
+        return {
+            seeTimes: rows[0]?.seeTimes ?? 0,
+            sellTimes: rows[0]?.sellTimes ?? 0,
+            addCartTimes: rows[0]?.addCartTimes ?? 0,
+        };
     }
 
     /** Upsert so the very first event creates the counter document. */

@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { ICatPaymentMethodService } from "../../../domain/services/cat-payment-method.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { CreatePaymentMethodDTO, UpdatePaymentMethodDTO } from "../dtos/cat-payment-method.dto";
@@ -17,6 +19,7 @@ export class CatPaymentMethodController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -72,6 +75,7 @@ export class CatPaymentMethodController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {
@@ -92,6 +96,7 @@ export class CatPaymentMethodController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {

@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { ICatCategoryService } from "../../../domain/services/cat-category.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/cat-category.dto";
@@ -18,6 +20,7 @@ export class CatCategoryContorller {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -75,6 +78,7 @@ export class CatCategoryContorller {
     @Put(':id')
     @HttpCode(200)
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @ApiResponse(
         {
             status: 200,
@@ -95,6 +99,7 @@ export class CatCategoryContorller {
     @Delete(':id')
     @HttpCode(200)
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @ApiResponse(
         {
             status: 200,

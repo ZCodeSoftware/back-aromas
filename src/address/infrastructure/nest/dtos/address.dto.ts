@@ -35,8 +35,9 @@ export class CreateAddressDTO {
     name?: string;
 
     @IsString()
+    @IsNotEmpty()
     @MaxLength(200)
-    @ApiPropertyOptional({
+    @ApiProperty({
         description: 'Street of the address',
         example: '123 Main St',
         type: String,
@@ -48,8 +49,8 @@ export class CreateAddressDTO {
     @IsOptional()
     @IsNumber()
     @ApiPropertyOptional({
-        description: 'Number of the address',
-        example: 'Apt 4B',
+        description: 'Street number of the address',
+        example: 123,
         type: Number,
     })
     number?: number;
@@ -88,14 +89,18 @@ export class CreateAddressDTO {
     })
     floorAddress?: string;
 
+    /**
+     * Soft-delete flag. Optional because the schema defaults it to true; it stays
+     * on the DTO rather than being dropped so clients that already send it keep
+     * working under the global `forbidNonWhitelisted` pipe.
+     */
+    @IsOptional()
     @IsBoolean()
-    @IsNotEmpty()
-    @ApiProperty({
-        description: 'Active status of the address',
-        example: 'true',
+    @ApiPropertyOptional({
+        description: 'Whether the address is active. Defaults to true; send false to soft-delete it',
+        example: true,
         type: Boolean,
-        required: true,
-        default: 'true'
+        default: true
     })
     isActive?: boolean;
 

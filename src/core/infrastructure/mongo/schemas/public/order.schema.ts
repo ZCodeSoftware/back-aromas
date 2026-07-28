@@ -58,10 +58,32 @@ export class OrderShippingAddress {
 
 export const OrderShippingAddressSchema = SchemaFactory.createForClass(OrderShippingAddress);
 
+/**
+ * Loose buyer snapshot for counter sales, where there is usually no account.
+ * Every field is optional: a walk-in customer may give nothing at all.
+ */
+@Schema({ _id: false })
+export class OrderCustomer {
+    @Prop({ required: false, name: 'name', type: String, trim: true })
+    name?: string;
+
+    @Prop({ required: false, name: 'email', type: String, trim: true, lowercase: true })
+    email?: string;
+
+    @Prop({ required: false, name: 'phone', type: String, trim: true })
+    phone?: string;
+
+    @Prop({ required: false, name: 'taxId', type: String, trim: true })
+    taxId?: string;
+}
+
+export const OrderCustomerSchema = SchemaFactory.createForClass(OrderCustomer);
+
 @Schema({ collection: 'order', timestamps: true })
 export class Order {
-    @Prop({ required: true, name: 'user', type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
-    user: User;
+    /** Optional: a point-of-sale walk-in has no account behind it. */
+    @Prop({ required: false, name: 'user', type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
+    user?: User;
 
     @Prop({ required: true, name: 'items', type: [OrderItemSchema], default: [] })
     items: OrderItem[];
@@ -90,6 +112,37 @@ export class Order {
     /** Guards the cancel flow so stock is never given back twice. */
     @Prop({ required: true, name: 'stockRestored', type: Boolean, default: false })
     stockRestored: boolean;
+
+    /**
+     * Where the sale happened. Kept as a plain string, like `status`, because
+     * `src/core` must not import from a feature module. Documents created before
+     * the point-of-sale feature have no such field: reads treat missing as ONLINE.
+     */
+    @Prop({ required: true, name: 'channel', type: String, default: 'ONLINE' })
+    channel: string;
+
+    /** Operator who rang up a counter sale. Absent on online orders. */
+    @Prop({ required: false, name: 'soldBy', type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
+    soldBy?: User;
+
+    /** Buyer data of a counter sale, snapshotted like the shipping address. */
+    @Prop({ required: false, name: 'customer', type: OrderCustomerSchema })
+    customer?: OrderCustomer;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+/** Every analytics range query filters revenue statuses then cuts by date. */
+OrderSchema.index({ status: 1, createdAt: -1 });
+
+/** Range scans with no status predicate, plus the admin order listing sort. */
+OrderSchema.index({ createdAt: -1 });
+
+/** Customer cohorts and top-customer rankings group by user. */
+OrderSchema.index({ user: 1, createdAt: -1 });
+
+/** Dead-stock `distinct()` and the existing hasPurchasedProduct() lookup. */
+OrderSchema.index({ 'items.product': 1, status: 1 });
+
+/** Point-of-sale listing: this channel, newest first. */
+OrderSchema.index({ channel: 1, createdAt: -1 });

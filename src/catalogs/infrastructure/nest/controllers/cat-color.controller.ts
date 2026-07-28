@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseG
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatColorService } from "../../../domain/services/cat-color.interface.service";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { CreateColorDTO, UpdateColorDTO } from "../dtos/cat-color.dto";
 
 
@@ -17,6 +19,7 @@ export class CatColorController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse({ status: 201, description: 'Color Created' })
     @ApiResponse({ status: 400, description: `Sub-Category shouldn't be created` })
@@ -44,6 +47,7 @@ export class CatColorController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Color updated' })
     @ApiResponse({ status: 404, description: 'Color not found' })
@@ -54,6 +58,7 @@ export class CatColorController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Color deactivated (soft delete)' })
     @ApiResponse({ status: 404, description: 'Color not found' })

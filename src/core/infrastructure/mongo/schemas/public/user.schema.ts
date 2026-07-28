@@ -16,7 +16,11 @@ export class User {
     @Prop({ required: true, name: 'email', type: String, unique: true })
     email: string;
 
-    @Prop({ required: true, name: 'password', type: String })
+    /**
+     * `select: false` so no query can leak the hash by accident. The login lookup
+     * asks for it explicitly with `.select('+password')`.
+     */
+    @Prop({ required: true, name: 'password', type: String, select: false })
     password: string;
 
     @Prop({ required: false, name: 'phone', type: String, default: null })
