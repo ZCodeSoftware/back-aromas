@@ -25,7 +25,7 @@ export class AuthService implements IAuthService {
       throw new BaseErrorException('Invalid credentials', HttpStatus.BAD_REQUEST);
     }
 
-    const checkPassword = await comparePassword(body.password, user);
+    const checkPassword = await comparePassword(body.password, user.passwordHash);
 
     if (!checkPassword) {
       throw new BaseErrorException('Invalid credentials', HttpStatus.BAD_REQUEST);

@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseG
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatTypeHousingService } from "../../../domain/services/cat-type-housing.service";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { CreateTypeHousingDTO, UpdateTypeHousingDTO } from "../dtos/cat-type-housing.dto";
 
 
@@ -17,6 +19,7 @@ export class CatTypeHousingController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -72,6 +75,7 @@ export class CatTypeHousingController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {
@@ -92,6 +96,7 @@ export class CatTypeHousingController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {

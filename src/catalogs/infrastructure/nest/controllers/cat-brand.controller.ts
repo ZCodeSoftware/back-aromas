@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseG
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatBrandService } from "../../../domain/services/cat-brand.service";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { CreateBrandDTO, UpdateBrandDTO } from "../dtos/cat-brand.dto";
 
 
@@ -19,6 +21,7 @@ export class CatBrandController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -74,6 +77,7 @@ export class CatBrandController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {
@@ -94,6 +98,7 @@ export class CatBrandController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {

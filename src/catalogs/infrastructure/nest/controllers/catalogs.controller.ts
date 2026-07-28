@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { ICatRoleService } from "../../../domain/services/cat-role.interface.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { CreateRoleDTO, UpdateRoleDTO } from "../dtos/cat-role.dto";
@@ -15,25 +17,39 @@ export class CatRoleController {
     ) { }
 
     @Post()
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse({ status: 201, description: 'Role created' })
     @ApiResponse({ status: 400, description: `Role shouldn't be created` })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
     @ApiBody({ type: CreateRoleDTO, description: 'Data to create a Role' })
     async create(@Body() body: CreateRoleDTO) {
         return this.catRoleService.create(body);
     }
 
+    // The role catalog is authorization metadata, not storefront data: unlike the
+    // other catalogs its reads stay admin-only.
     @Get()
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Return all Roles' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
     @ApiResponse({ status: 404, description: 'Role not found' })
     async findAll() {
         return this.catRoleService.findAll();
     }
 
     @Get(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Return role by id' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
     @ApiResponse({ status: 404, description: 'Role not found' })
     async findById(@Param('id') id: string) {
         return this.catRoleService.findById(id);
@@ -41,6 +57,7 @@ export class CatRoleController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Role updated' })
     @ApiResponse({ status: 404, description: 'Role not found' })
@@ -51,6 +68,7 @@ export class CatRoleController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Role deactivated (soft delete)' })
     @ApiResponse({ status: 404, description: 'Role not found' })

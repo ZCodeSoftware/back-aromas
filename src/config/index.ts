@@ -12,10 +12,19 @@ export default registerAs('config', () => {
             },
             jwt: {
                 secret: process.env.JWT_SECRET,
-                expiresIn: process.env.JWT_EXPIRATION_TIME,
+                /**
+                 * Defaulted on purpose: an empty JWT_EXPIRATION_TIME reaches
+                 * jwt.sign() as `undefined`, which mints tokens with no `exp` at
+                 * all. There is no revocation list, so those never stop working.
+                 */
+                expiresIn: process.env.JWT_EXPIRATION_TIME || '1d',
             },
             domain: process.env.APP_DOMAIN,
             env: process.env.NODE_ENV,
+            analytics: {
+                /** Fixed UTC offset used to cut calendar days in reports. */
+                tz_offset: process.env.ANALYTICS_TZ_OFFSET,
+            },
         },
         mongo: {
             mongo_uri: process.env.MONGO_URI,

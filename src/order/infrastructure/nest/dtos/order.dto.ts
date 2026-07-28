@@ -56,7 +56,8 @@ export class CreateOrderDTO {
 export class ChangeOrderStatusDTO {
     @IsEnum(OrderStatus)
     @ApiProperty({
-        description: 'New status. Allowed moves: PENDING→PAID|CANCELLED, PAID→SHIPPED|CANCELLED, SHIPPED→DELIVERED',
+        description:
+            'New status. Allowed moves: PENDING→PAID|CANCELLED, PAID→SHIPPED|CANCELLED|REFUNDED, SHIPPED→DELIVERED. Moving to CANCELLED or REFUNDED restores stock',
         example: OrderStatus.PAID,
         enum: OrderStatus,
         required: true,

@@ -1,5 +1,6 @@
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import SymbolsCatalogs from "../../../catalogs/symbols-catalogs";
+import { TypeRoles } from "../../../core/domain/enums/type-roles.enum";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 import { IUserRepository } from "../../../core/domain/repositories/user.interface.repository";
 import SymbolsGeo from "../../../geo/symbols-geo";
@@ -57,15 +58,22 @@ export class AddressService implements IAddressService {
         return addressModelSaved;
     }
 
-    async findById(id: string): Promise<AddressModel> {
+    async findById(id: string, requesterId: string): Promise<AddressModel> {
+        await this.assertCanAccess(id, requesterId);
+
         return this.addressRepository.findById(id);
     }
 
-    async findAll(): Promise<AddressModel[]> {
-        return this.addressRepository.findAll();
+    async findByUser(userId: string): Promise<AddressModel[]> {
+        const user = await this.userRepository.findById(userId);
+        const ids = (user.toJSON().address ?? []).map((addr: any) => String(addr?._id ?? addr));
+
+        return this.addressRepository.findByIds(ids);
     }
 
-    async update(id: string, address: Partial<ICreateAddress>): Promise<AddressModel> {
+    async update(id: string, address: Partial<ICreateAddress>, requesterId: string): Promise<AddressModel> {
+        await this.assertCanAccess(id, requesterId);
+
         const existingAddress = await this.addressRepository.findById(id);
         if (!existingAddress) {
             throw new BaseErrorException('Address not found', HttpStatus.NOT_FOUND);
@@ -80,8 +88,31 @@ export class AddressService implements IAddressService {
         return this.addressRepository.update(id, updatedAddress);
     }
 
-    async delete(id: string): Promise<AddressModel> {
+    async delete(id: string, requesterId: string): Promise<AddressModel> {
+        await this.assertCanAccess(id, requesterId);
+
         return this.addressRepository.softDelete(id);
+    }
+
+    /**
+     * Owner-or-admin, using the same `user.hasAddress()` check that the checkout
+     * flow already relies on to bind a shipping address to its owner.
+     */
+    private async assertCanAccess(addressId: string, requesterId: string): Promise<void> {
+        const user = await this.userRepository.findById(requesterId);
+
+        if (user.hasAddress(addressId)) return;
+
+        const isAdmin = (user.toJSON().roles ?? []).some(
+            (role: { name: string }) => role.name === TypeRoles.ADMIN,
+        );
+
+        if (!isAdmin) {
+            throw new BaseErrorException(
+                'Access denied: this address belongs to another user',
+                HttpStatus.FORBIDDEN,
+            );
+        }
     }
 
     private async updateTypeOfHousing(updatedAddress: AddressModel, typeOfHousing?: string) {

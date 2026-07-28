@@ -9,7 +9,7 @@ import { IUserRepository } from "../../../core/domain/repositories/user.interfac
 import { PaginatedResponse } from "../../../core/domain/response/find-all-paginated.response";
 import SymbolsProduct from "../../../product/symbols-product";
 import SymbolsUser from "../../../user/symbols-user";
-import { OrderStatus } from "../../domain/enum/order-status.enum";
+import { OrderStatus, STOCK_RESTORING_STATUSES } from "../../domain/enum/order-status.enum";
 import { ShippingType } from "../../domain/enum/shipping-type.enum";
 import { OrderItemModel } from "../../domain/models/order-item.model";
 import { OrderModel } from "../../domain/models/order.model";
@@ -20,7 +20,8 @@ import { IMetricsRepository } from "../../domain/repositories/metrics.interface.
 import { IOrderRepository } from "../../domain/repositories/order.interface.repository";
 import { IProductRepository } from "../../domain/repositories/product.interface.repository";
 import { IOrderService } from "../../domain/services/order.interface.service";
-import { ICreateOrder, IOrderCartItem, IOrderFilterOptions, IOrderProduct } from "../../domain/types/order.type";
+import { IStockReservationService } from "../../domain/services/stock-reservation.interface.service";
+import { ICreateOrder, IOrderCartItem, IOrderFilterOptions, IOrderLine } from "../../domain/types/order.type";
 import SymbolsOrder from "../../symbols-order";
 
 @Injectable()
@@ -42,6 +43,8 @@ export class OrderService implements IOrderService {
         private readonly userRepository: IUserRepository,
         @Inject(SymbolsAnalytics.IMetricsRepository)
         private readonly metricsRepository: IMetricsRepository,
+        @Inject(SymbolsOrder.IStockReservationService)
+        private readonly stockReservation: IStockReservationService,
     ) { }
 
     async create(userId: string, order: ICreateOrder): Promise<OrderModel> {
@@ -81,13 +84,13 @@ export class OrderService implements IOrderService {
             orderModel.setShippingAddress(await this.resolveShippingAddress(userId, order.addressId));
         }
 
-        const reserved = await this.reserveStock(lines);
+        const reserved = await this.stockReservation.reserve(lines);
 
         let createdOrder: OrderModel;
         try {
             createdOrder = await this.orderRepository.create(orderModel);
         } catch (error) {
-            await this.releaseStock(reserved);
+            await this.stockReservation.release(reserved);
             throw error;
         }
 
@@ -121,8 +124,8 @@ export class OrderService implements IOrderService {
 
         order.changeStatus(status);
 
-        if (status === OrderStatus.CANCELLED) {
-            await this.restoreStockOnce(order);
+        if (STOCK_RESTORING_STATUSES.includes(status)) {
+            await this.stockReservation.restoreOnce(order);
         }
 
         return this.orderRepository.update(id, order);
@@ -143,14 +146,14 @@ export class OrderService implements IOrderService {
         }
 
         order.changeStatus(OrderStatus.CANCELLED);
-        await this.restoreStockOnce(order);
+        await this.stockReservation.restoreOnce(order);
 
         return this.orderRepository.update(id, order);
     }
 
     /** Loads each product fresh and checks it can still be sold. */
-    private async buildLines(items: IOrderCartItem[]): Promise<{ product: IOrderProduct; quantity: number }[]> {
-        const lines: { product: IOrderProduct; quantity: number }[] = [];
+    private async buildLines(items: IOrderCartItem[]): Promise<IOrderLine[]> {
+        const lines: IOrderLine[] = [];
 
         for (const item of items) {
             const product = await this.productRepository.findById(item.productId);
@@ -177,53 +180,6 @@ export class OrderService implements IOrderService {
         }
 
         return lines;
-    }
-
-    /**
-     * Takes stock line by line with a guarded update. If one line loses a race
-     * we give back everything already taken, so the order never half-commits.
-     */
-    private async reserveStock(
-        lines: { product: IOrderProduct; quantity: number }[],
-    ): Promise<{ productId: string; quantity: number }[]> {
-        const reserved: { productId: string; quantity: number }[] = [];
-
-        for (const { product, quantity } of lines) {
-            const taken = await this.productRepository.decrementStock(product._id, quantity);
-
-            if (!taken) {
-                await this.releaseStock(reserved);
-                throw new BaseErrorException(
-                    `Insufficient stock for ${product.name}, please review your cart`,
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-
-            reserved.push({ productId: product._id, quantity });
-        }
-
-        return reserved;
-    }
-
-    private async releaseStock(reserved: { productId: string; quantity: number }[]): Promise<void> {
-        for (const { productId, quantity } of reserved) {
-            try {
-                await this.productRepository.incrementStock(productId, quantity);
-            } catch (error) {
-                this.logger.error(`Could not restore ${quantity} units of product ${productId}`, error?.stack);
-            }
-        }
-    }
-
-    /** Idempotent: an order whose stock was already given back is left alone. */
-    private async restoreStockOnce(order: OrderModel): Promise<void> {
-        if (order.stockRestored) return;
-
-        await this.releaseStock(
-            order.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
-        );
-
-        order.markStockRestored();
     }
 
     private async resolveShippingAddress(userId: string, addressId?: string) {
@@ -261,7 +217,7 @@ export class OrderService implements IOrderService {
     }
 
     /** Fire and forget: a metrics failure must never break a purchase. */
-    private trackSales(lines: { product: IOrderProduct; quantity: number }[]): void {
+    private trackSales(lines: IOrderLine[]): void {
         lines.forEach(({ product, quantity }) =>
             this.metricsRepository
                 .incrementSellTimes(product._id, quantity)

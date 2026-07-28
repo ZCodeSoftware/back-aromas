@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsDate, IsEnum, IsMongoId, IsNumber, IsOptional, Max, Min } from "class-validator";
+import { OrderChannel } from "../../../domain/enum/order-channel.enum";
 import { OrderStatus } from "../../../domain/enum/order-status.enum";
 
 export class FilterOrderDTO {
@@ -62,7 +63,7 @@ export class FilterOrderDTO {
     dateTo?: Date;
 }
 
-/** Admin-only listing: adds the ability to filter by customer. */
+/** Admin-only listing: adds the ability to filter by customer and channel. */
 export class FilterAllOrdersDTO extends FilterOrderDTO {
     @IsOptional()
     @IsMongoId()
@@ -72,4 +73,26 @@ export class FilterAllOrdersDTO extends FilterOrderDTO {
         type: String,
     })
     userId?: string;
+
+    @IsOptional()
+    @IsEnum(OrderChannel)
+    @ApiPropertyOptional({
+        description:
+            'Filter by sales channel. ONLINE also matches orders created before the channel field existed',
+        example: OrderChannel.ONLINE,
+        enum: OrderChannel,
+    })
+    channel?: OrderChannel;
+}
+
+/** Point-of-sale listing. The channel is forced by the service, never by the caller. */
+export class FilterPosSalesDTO extends FilterOrderDTO {
+    @IsOptional()
+    @IsMongoId()
+    @ApiPropertyOptional({
+        description: 'Filter by the operator who registered the sale',
+        example: '60c72b2f9b1e8b001c8e4d5d',
+        type: String,
+    })
+    soldBy?: string;
 }

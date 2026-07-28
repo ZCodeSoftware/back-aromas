@@ -12,8 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/infrastructure/nest/decorators/roles.decorator';
 import { AuthGuards } from 'src/auth/infrastructure/nest/guards/auth.guard';
 import { RoleGuards } from 'src/auth/infrastructure/nest/guards/role.guard';
+import { TypeRoles } from 'src/core/domain/enums/type-roles.enum';
 import { IUserRequest } from 'src/core/infrastructure/nest/dtos/custom-request/user.request';
 import { IUserService } from '../../../domain/services/user.interface.service';
 import SymbolsUser from '../../../symbols-user';
@@ -38,8 +40,11 @@ export class UserController {
 
   @Get()
   @HttpCode(200)
+  @UseGuards(AuthGuards, RoleGuards)
+  @Roles(TypeRoles.ADMIN)
   @ApiResponse({ status: 200, description: 'Return all Users' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Admin role required' })
   async findAll() {
     return this.userService.findAll();
   }
@@ -56,7 +61,11 @@ export class UserController {
 
   @Get(':id')
   @HttpCode(200)
+  @UseGuards(AuthGuards, RoleGuards)
+  @Roles(TypeRoles.ADMIN)
   @ApiResponse({ status: 200, description: 'Return User by id' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Admin role required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findById(@Param('id') id: string) {
     return this.userService.findById(id);
@@ -79,6 +88,7 @@ export class UserController {
   @Put(':id')
   @HttpCode(200)
   @UseGuards(AuthGuards, RoleGuards)
+  @Roles(TypeRoles.ADMIN)
   @ApiResponse({ status: 200, description: 'User updated' })
   @ApiResponse({ status: 400, description: 'Email already in use' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -90,6 +100,7 @@ export class UserController {
   @Delete(':id')
   @HttpCode(200)
   @UseGuards(AuthGuards, RoleGuards)
+  @Roles(TypeRoles.ADMIN)
   @ApiResponse({ status: 200, description: 'User deactivated (soft delete)' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async delete(@Param('id') id: string) {

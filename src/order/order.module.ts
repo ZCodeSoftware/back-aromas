@@ -7,7 +7,9 @@ import {
   metricsRepository,
   orderRepository,
   orderService,
+  posService,
   productRepository,
+  stockReservationService,
 } from './infrastructure/nest/constants/custom-provider';
 import {
   addressSchema,
@@ -18,6 +20,7 @@ import {
   productSchema,
 } from './infrastructure/nest/constants/custom-schema';
 import { OrderController } from './infrastructure/nest/controllers/order.controller';
+import { PosController } from './infrastructure/nest/controllers/pos.controller';
 
 @Module({
   imports: [
@@ -30,9 +33,11 @@ import { OrderController } from './infrastructure/nest/controllers/order.control
       metricsSchema,
     ]),
   ],
-  controllers: [OrderController],
+  controllers: [OrderController, PosController],
   providers: [
     orderService,
+    posService,
+    stockReservationService,
     orderRepository,
     cartRepository,
     productRepository,

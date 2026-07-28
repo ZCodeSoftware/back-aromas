@@ -76,12 +76,20 @@ export class UserModel extends BaseModel {
     return { name: this._firstName, roles: this._roles };
   }
 
+  /** Only the login flow should read this: the hash never leaves the domain otherwise. */
+  get passwordHash(): string {
+    return this._password;
+  }
+
+  /**
+   * `toJSON()` is what reaches the HTTP layer, so the password hash is left out of
+   * it on purpose. Persistence goes through `toPersistence()` instead.
+   */
   public toJSON() {
     const aggregate = this._id ? { _id: this._id.toValue() } : {};
     return {
       ...aggregate,
       email: this._email,
-      password: this._password,
       firstName: this._firstName,
       lastName: this._lastName,
       phone: this._phone,
@@ -94,6 +102,11 @@ export class UserModel extends BaseModel {
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     };
+  }
+
+  /** Write shape for the repository: `toJSON()` plus the password hash. */
+  public toPersistence() {
+    return { ...this.toJSON(), password: this._password };
   }
 
   static create(user: any): UserModel {

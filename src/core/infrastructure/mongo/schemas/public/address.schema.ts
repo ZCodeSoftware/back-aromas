@@ -25,7 +25,8 @@ export class Address {
     @Prop({ type: String, required: false })
     floorAddress?: string;
 
-    @Prop({ type: Boolean, required: true })
+    /** Soft-delete flag, defaulted like every other collection so the client need not send it. */
+    @Prop({ type: Boolean, required: true, default: true })
     isActive: boolean;
 
     @Prop({ type: Boolean, required: false, default: true })

@@ -14,7 +14,7 @@ export class UserRepository implements IUserRepository {
     ) { }
 
     async create(user: UserModel): Promise<UserModel> {
-        const schema = new this.userDB(user.toJSON());
+        const schema = new this.userDB(user.toPersistence());
         const newUser = await schema.save();
 
         if (!newUser) throw new BaseErrorException(`User shouldn't be created`, HttpStatus.BAD_REQUEST);
@@ -34,7 +34,8 @@ export class UserRepository implements IUserRepository {
      * stay taken. Callers are responsible for rejecting an inactive user.
      */
     async findByEmail(email: string): Promise<UserModel | null> {
-        const user = await this.userDB.findOne({ email }).populate('roles address');
+        // `+password` because the field is `select: false`; login needs the hash to compare.
+        const user = await this.userDB.findOne({ email }).select('+password').populate('roles address');
         if (!user) return null;
         return UserModel.hydrate(user);
     }

@@ -40,7 +40,10 @@ export class AddressModel extends BaseModel {
     newAddress._zipCode = address.zipCode;
     newAddress._description = address.description;
     newAddress._floorAddress = address.floorAddress;
-    newAddress._isActive = address.isActive;
+    // Both default to true when absent: a newly created address is active and
+    // usable, and an update spreads the stored value back in so this never
+    // resurrects a soft-deleted row.
+    newAddress._isActive = address.isActive !== undefined ? address.isActive : true;
     newAddress._isAble = address.isAble !== undefined ? address.isAble : true;
 
     return newAddress;

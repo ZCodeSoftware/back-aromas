@@ -41,3 +41,6 @@ export class Cart {
 }
 
 export const CartSchema = SchemaFactory.createForClass(Cart);
+
+/** Abandoned-cart snapshot: non-empty carts untouched since a cutoff. */
+CartSchema.index({ updatedAt: -1 });

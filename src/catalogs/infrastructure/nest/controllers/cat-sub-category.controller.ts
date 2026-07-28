@@ -3,8 +3,10 @@ import { ICatSubCategoryService } from "../../../domain/services/cat-sub-categor
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { CreateSubCategoryDTO, UpdateSubCategoryDTO } from "../dtos/cat-sub-category.dto";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 
 
 @ApiTags('cat-sub-category')
@@ -18,6 +20,7 @@ export class CatSubCategoryController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse({ status: 201, description: 'Sub-Category Created' })
     @ApiResponse({ status: 400, description: `Sub-Category shouldn't be created` })
@@ -44,6 +47,7 @@ export class CatSubCategoryController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Sub-Category updated' })
     @ApiResponse({ status: 404, description: 'Sub-Category not found' })
@@ -54,6 +58,7 @@ export class CatSubCategoryController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Sub-Category deactivated (soft delete)' })
     @ApiResponse({ status: 404, description: 'Sub-Category not found' })

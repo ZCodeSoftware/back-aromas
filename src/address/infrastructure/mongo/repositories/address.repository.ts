@@ -33,6 +33,13 @@ export class AddressRepository implements IAddressRepository {
         return addresss?.map(address => AddressModel.hydrate(address));
     }
 
+    async findByIds(ids: string[]): Promise<AddressModel[]> {
+        if (!ids.length) return [];
+
+        const addresses = await this.addressDB.find({ _id: { $in: ids } }).populate('typeOfHousing geo');
+        return addresses?.map(address => AddressModel.hydrate(address)) || [];
+    }
+
     async update(id: string, address: AddressModel): Promise<AddressModel> {
         const updateObject = address.toJSON();
         const filteredUpdateObject = Object.fromEntries(

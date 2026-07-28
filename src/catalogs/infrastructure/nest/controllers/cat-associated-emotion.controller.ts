@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseG
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatAssociatedEmotionService } from "../../../domain/services/cat-associated-emotion.service";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { CreateAssociatedEmotionDTO, UpdateAssociatedEmotionDTO } from "../dtos/cat-associated-emotion.dto";
 
 @ApiTags('cat-associated-emotion')
@@ -15,6 +17,7 @@ export class CatAssociatedEmotionController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -71,6 +74,7 @@ export class CatAssociatedEmotionController {
 
     @Put(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {
@@ -91,6 +95,7 @@ export class CatAssociatedEmotionController {
 
     @Delete(':id')
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(200)
     @ApiResponse(
         {

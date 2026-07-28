@@ -4,6 +4,8 @@ import SymbolsCart from '../../../../cart/symbols-cart';
 import SymbolsCatalogs from '../../../../catalogs/symbols-catalogs';
 import SymbolsProduct from '../../../../product/symbols-product';
 import { OrderService } from '../../../application/services/order.service';
+import { PosService } from '../../../application/services/pos.service';
+import { StockReservationService } from '../../../application/services/stock-reservation.service';
 import SymbolsOrder from '../../../symbols-order';
 import { AddressRepository } from '../../mongo/repositories/address.repository';
 import { CartRepository } from '../../mongo/repositories/cart.repository';
@@ -15,6 +17,16 @@ import { ProductRepository } from '../../mongo/repositories/product.repository';
 export const orderService = {
   provide: SymbolsOrder.IOrderService,
   useClass: OrderService,
+};
+
+export const posService = {
+  provide: SymbolsOrder.IPosService,
+  useClass: PosService,
+};
+
+export const stockReservationService = {
+  provide: SymbolsOrder.IStockReservationService,
+  useClass: StockReservationService,
 };
 
 export const orderRepository = {
