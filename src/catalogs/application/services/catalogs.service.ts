@@ -3,7 +3,7 @@ import { BaseErrorException } from "../../../core/domain/exceptions/base.error.e
 import { CatRoleModel } from "../../domain/models/cat-role.model";
 import { ICatRoleRepository } from "../../domain/repositories/cat-role.interface.repository";
 import { ICatRoleService } from "../../domain/services/cat-role.interface.service";
-import { ICreateRole } from "../../domain/types/cat-role.type";
+import { ICreateRole, IUpdateRole } from "../../domain/types/cat-role.type";
 import SymbolsCatalogs from "../../symbols-catalogs";
 
 @Injectable()
@@ -28,5 +28,14 @@ export class CatRoleService implements ICatRoleService {
 
     async findAll(): Promise<CatRoleModel[]> {
         return this.catRoleRepository.findAll();
+    }
+
+    async update(id: string, role: IUpdateRole): Promise<CatRoleModel> {
+        const catRoleModel = CatRoleModel.create(role);
+        return this.catRoleRepository.update(id, catRoleModel);
+    }
+
+    async delete(id: string): Promise<CatRoleModel> {
+        return this.catRoleRepository.softDelete(id);
     }
 }

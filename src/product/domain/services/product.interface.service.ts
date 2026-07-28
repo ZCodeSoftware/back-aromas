@@ -8,4 +8,5 @@ export interface IProductService {
     findById(id: string): Promise<ProductModel>;
     findAll(options: FilterOptions): Promise<PaginatedResponse<ProductModel>>
     update(id: string, product: Partial<ICreateProduct>): Promise<ProductModel>;
+    delete(id: string): Promise<ProductModel>;
 }

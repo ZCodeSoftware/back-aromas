@@ -1,8 +1,8 @@
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ICatSubCategoryService } from "../../../domain/services/cat-sub-category.service";
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import SymbolsCatalogs from "../../../symbols-catalogs";
-import { CreateSubCategoryDTO } from "../dtos/cat-sub-category.dto";
+import { CreateSubCategoryDTO, UpdateSubCategoryDTO } from "../dtos/cat-sub-category.dto";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
 
@@ -40,5 +40,24 @@ export class CatSubCategoryController {
     @ApiResponse({ status: 404, description: 'Category not found' })
     async findById(@Param('id') id: string) {
         return this.catSubCategoryService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Sub-Category updated' })
+    @ApiResponse({ status: 404, description: 'Sub-Category not found' })
+    @ApiBody({ type: UpdateSubCategoryDTO, description: 'Data to update a Sub-Category' })
+    async update(@Param('id') id: string, @Body() body: UpdateSubCategoryDTO) {
+        return this.catSubCategoryService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Sub-Category deactivated (soft delete)' })
+    @ApiResponse({ status: 404, description: 'Sub-Category not found' })
+    async delete(@Param('id') id: string) {
+        return this.catSubCategoryService.delete(id);
     }
 }

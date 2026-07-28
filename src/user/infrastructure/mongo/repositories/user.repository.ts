@@ -2,8 +2,9 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { BaseErrorException } from "../../../../core/domain/exceptions/base.error.exception";
-import { UserModel } from "../../../domain/models/user.model";
-import { IUserRepository } from "../../../domain/repositories/user.interface.repository";
+import { UserModel } from "../../../../core/domain/models/user.model";
+import { IUserRepository } from "../../../../core/domain/repositories/user.interface.repository";
+import { USER_RELATIONS } from "../../../../core/infrastructure/nest/constants/relations.constant";
 import { UserSchema } from "../schemas/user.schema";
 
 @Injectable()
@@ -22,19 +23,62 @@ export class UserRepository implements IUserRepository {
     }
 
     async findById(id: string): Promise<UserModel> {
-        const user = await this.userDB.findById(id).populate('roles addresss');
+        const user = await this.userDB.findOne({ _id: id, isActive: true }).populate('roles address');
         if (!user) throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
         return UserModel.hydrate(user);
     }
 
-    async findByEmail(email: string): Promise<UserModel> {
+    /**
+     * Deliberately not filtered by isActive: this backs both the login lookup and
+     * the registration uniqueness check, and the email of a deactivated user must
+     * stay taken. Callers are responsible for rejecting an inactive user.
+     */
+    async findByEmail(email: string): Promise<UserModel | null> {
         const user = await this.userDB.findOne({ email }).populate('roles address');
         if (!user) return null;
         return UserModel.hydrate(user);
     }
 
     async findAll(): Promise<UserModel[]> {
-        const users = await this.userDB.find().populate('roles address');
+        const users = await this.userDB.find({ isActive: true }).populate('roles address');
         return users?.map(user => UserModel.hydrate(user));
+    }
+
+    async update(user: UserModel): Promise<UserModel> {
+        const updateObject = user.toJSON();
+        const filteredUpdateObject = Object.fromEntries(
+            Object.entries(updateObject).filter(([key, value]) => {
+                // _id is never reassigned and the timestamps are managed by mongoose.
+                if (key === '_id' || key === 'createdAt' || key === 'updatedAt') return false;
+                if (USER_RELATIONS.includes(key)) {
+                    return (value !== null && value !== undefined && typeof value === 'object');
+                }
+                return value !== undefined;
+            })
+        );
+
+        const updatedUser = await this.userDB.findByIdAndUpdate(
+            user.id.toString(),
+            filteredUpdateObject,
+            { new: true }
+        ).populate('roles address');
+
+        if (!updatedUser) {
+            throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
+        }
+
+        return UserModel.hydrate(updatedUser);
+    }
+
+    async softDelete(id: string): Promise<UserModel> {
+        const user = await this.userDB
+            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .populate('roles address');
+
+        if (!user) {
+            throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
+        }
+
+        return UserModel.hydrate(user);
     }
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatTypeHousingService } from "../../../domain/services/cat-type-housing.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateTypeHousingDTO } from "../dtos/cat-type-housing.dto";
+import { CreateTypeHousingDTO, UpdateTypeHousingDTO } from "../dtos/cat-type-housing.dto";
 
 
 
@@ -68,6 +68,45 @@ export class CatTypeHousingController {
     )
     async findById(@Param('id') id: string) {
         return this.catTypeHousingService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Type Housing updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Type Housing by id Not Found'
+        }
+    )
+    @ApiBody({ type: UpdateTypeHousingDTO, description: 'Data to update a Type Housing' })
+    async update(@Param('id') id: string, @Body() body: UpdateTypeHousingDTO) {
+        return this.catTypeHousingService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Type Housing deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Type Housing by id Not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catTypeHousingService.delete(id);
     }
 
 }

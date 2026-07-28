@@ -52,4 +52,14 @@ export class AddressRepository implements IAddressRepository {
 
         return AddressModel.hydrate(addressToUpdate);
     }
+
+    async softDelete(id: string): Promise<AddressModel> {
+        const address = await this.addressDB
+            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .populate('typeOfHousing geo');
+
+        if (!address) throw new BaseErrorException('Address not found', HttpStatus.NOT_FOUND);
+
+        return AddressModel.hydrate(address);
+    }
 }

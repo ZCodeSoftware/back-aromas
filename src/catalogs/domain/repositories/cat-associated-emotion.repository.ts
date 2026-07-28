@@ -4,4 +4,6 @@ export interface ICatAssociatedEmotionRepository{
     create(associatedEmotion: CatAssociatedEmotionModel): Promise<CatAssociatedEmotionModel>;
     findById(id:string):Promise<CatAssociatedEmotionModel|null>;
     findAll():Promise<CatAssociatedEmotionModel[]>
+    update(id: string, associatedEmotion: CatAssociatedEmotionModel): Promise<CatAssociatedEmotionModel>;
+    softDelete(id: string): Promise<CatAssociatedEmotionModel>;
 }

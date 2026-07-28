@@ -2,8 +2,8 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import config from '../../../../config';
+import { IUserService } from '../../../../user/domain/services/user.interface.service';
 import SymbolsUser from '../../../../user/symbols-user';
-import { IUserService } from '../../../domain/services/user.interface.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpitarion: false,
+      ignoreExpiration: false,
       secretOrKey: config().app.jwt.secret,
     });
   }

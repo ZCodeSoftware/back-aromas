@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import config from '../../../config';
 import SymbolsUser from '../../../user/symbols-user';
-import { IUserRepository } from '../../domain/repositories/user.interface.repository';
+import { IUserRepository } from '../../../core/domain/repositories/user.interface.repository';
 import { ITokenService } from '../../domain/services/token.interface.service';
 
 @Injectable()

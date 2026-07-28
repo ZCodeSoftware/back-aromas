@@ -8,6 +8,9 @@ export type CatBrandDocument = HydratedDocument<CatBrand>
 export class CatBrand {
     @Prop({ unique: true })
     name: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 

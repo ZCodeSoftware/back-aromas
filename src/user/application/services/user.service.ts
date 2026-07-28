@@ -2,11 +2,11 @@ import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import SymbolsCatalogs from "../../../catalogs/symbols-catalogs";
 import { TypeRoles } from "../../../core/domain/enums/type-roles.enum";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
-import { UserModel } from "../../domain/models/user.model";
+import { UserModel } from "../../../core/domain/models/user.model";
+import { IUserRepository } from "../../../core/domain/repositories/user.interface.repository";
 import { ICatRoleRepository } from "../../domain/repositories/cat-role.interface.repository";
-import { IUserRepository } from "../../domain/repositories/user.interface.repository";
 import { IUserService } from "../../domain/services/user.interface.service";
-import { ICreateUser } from "../../domain/types/user.type";
+import { ICreateUser, IUpdateUser } from "../../domain/types/user.type";
 import SymbolsUser from "../../symbols-user";
 
 @Injectable()
@@ -41,5 +41,22 @@ export class UserService implements IUserService {
 
     async findAll(): Promise<UserModel[]> {
         return this.userRepository.findAll();
+    }
+
+    async update(id: string, user: IUpdateUser): Promise<UserModel> {
+        if (user.email) {
+            const existingUser = await this.userRepository.findByEmail(user.email);
+            if (existingUser && String(existingUser.toJSON()._id) !== String(id)) {
+                throw new BaseErrorException('Email already in use', HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        const userModel = UserModel.create({ ...user, _id: id });
+
+        return this.userRepository.update(userModel);
+    }
+
+    async delete(id: string): Promise<UserModel> {
+        return this.userRepository.softDelete(id);
     }
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatBrandService } from "../../../domain/services/cat-brand.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateBrandDTO } from "../dtos/cat-brand.dto";
+import { CreateBrandDTO, UpdateBrandDTO } from "../dtos/cat-brand.dto";
 
 
 
@@ -70,6 +70,45 @@ export class CatBrandController {
     )
     async findById(@Param('id') id: string) {
         return this.catBrandService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Brand updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Brand not Found'
+        }
+    )
+    @ApiBody({ type: UpdateBrandDTO, description: 'Data to update a Brand' })
+    async update(@Param('id') id: string, @Body() body: UpdateBrandDTO) {
+        return this.catBrandService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Brand deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Brand not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catBrandService.delete(id);
     }
 
 

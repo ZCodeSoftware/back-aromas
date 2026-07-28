@@ -16,6 +16,9 @@ export class CatCategory {
         default: []
     })
     subCategories: CatSubCategory[]
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const CatCategorySchema = SchemaFactory.createForClass(CatCategory)

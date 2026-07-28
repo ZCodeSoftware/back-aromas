@@ -22,15 +22,36 @@ export class CatSubCategoryRepository implements ICatSubCategoryRepository {
     }
 
     async findById(id: string): Promise<CatSubCategoryModel | null> {
-        const subCategory = await this.catSubCategoryDB.findById(id);
+        const subCategory = await this.catSubCategoryDB.findOne({ _id: id, isActive: true });
         if (!subCategory) return null;
         return CatSubCategoryModel.hydrate(subCategory);
     }
 
     async findAll( ): Promise<CatSubCategoryModel[]> {
-        const subCategories = await this.catSubCategoryDB.find();
+        const subCategories = await this.catSubCategoryDB.find({ isActive: true });
 
         return subCategories.map((subCat)=> CatSubCategoryModel.hydrate(subCat));
+    }
+
+    async update(id: string, subCategory: CatSubCategoryModel): Promise<CatSubCategoryModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(subCategory.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const subCategoryToUpdate = await this.catSubCategoryDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!subCategoryToUpdate) throw new BaseErrorException(`SubCategory not found`, HttpStatus.NOT_FOUND);
+
+        return CatSubCategoryModel.hydrate(subCategoryToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatSubCategoryModel> {
+        const subCategory = await this.catSubCategoryDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!subCategory) throw new BaseErrorException(`SubCategory not found`, HttpStatus.NOT_FOUND);
+
+        return CatSubCategoryModel.hydrate(subCategory);
     }
 
 }

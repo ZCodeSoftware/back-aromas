@@ -1,4 +1,5 @@
-import { HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import SymbolsAnalytics from "../../../analytics/symbols-analytics";
 import SymbolsCatalogs from "../../../catalogs/symbols-catalogs";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 import { PaginatedResponse } from "../../../core/domain/response/find-all-paginated.response";
@@ -9,6 +10,7 @@ import { ICatCategoryRepository } from "../../domain/repositories/cat-categories
 import { ICatColorRepository } from "../../domain/repositories/cat-color.interface.repository";
 import { ICatEssenceRepository } from "../../domain/repositories/cat-essence.repository";
 import { ICatSubCategoryRepository } from "../../domain/repositories/cat-sub-cartegory.repository";
+import { IMetricsRepository } from "../../domain/repositories/metrics.repository";
 import { IProductRepository } from "../../domain/repositories/product.interface.repository";
 import { IProductService } from "../../domain/services/product.interface.service";
 import { FilterOptions } from "../../domain/types/filter.type";
@@ -17,6 +19,8 @@ import SymbolsProduct from "../../symbols-product";
 
 @Injectable()
 export class ProductService implements IProductService {
+    private readonly logger = new Logger(ProductService.name);
+
     constructor(
         @Inject(SymbolsProduct.IProductRepository)
         private readonly productRepository: IProductRepository,
@@ -31,7 +35,9 @@ export class ProductService implements IProductService {
         @Inject(SymbolsCatalogs.ICatColorRepository)
         private readonly catColorRepository: ICatColorRepository,
         @Inject(SymbolsCatalogs.ICatCategoryRepository)
-        private readonly catCategoryRepository: ICatCategoryRepository
+        private readonly catCategoryRepository: ICatCategoryRepository,
+        @Inject(SymbolsAnalytics.IMetricsRepository)
+        private readonly metricsRepository: IMetricsRepository
     ) { }
 
     async create(product: ICreateProduct): Promise<ProductModel> {
@@ -85,7 +91,14 @@ export class ProductService implements IProductService {
     }
 
     async findById(id: string): Promise<ProductModel> {
-        return this.productRepository.findById(id);
+        const product = await this.productRepository.findById(id);
+
+        // Fire and forget: a metrics failure must never break a product read.
+        this.metricsRepository
+            .incrementSeeTimes(id)
+            .catch((error) => this.logger.warn(`Could not track view of product ${id}: ${error?.message}`));
+
+        return product;
     }
 
     async findAll(options: FilterOptions): Promise<PaginatedResponse<ProductModel>> {
@@ -108,6 +121,10 @@ export class ProductService implements IProductService {
         await this.updateColor(updatedProduct, product.color);
 
         return this.productRepository.update(id, updatedProduct);
+    }
+
+    async delete(id: string): Promise<ProductModel> {
+        return this.productRepository.softDelete(id);
     }
 
     private async updateAssociatedEmotion(updatedProduct: ProductModel, associatedEmotion?: string) {

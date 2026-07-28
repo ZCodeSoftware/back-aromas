@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { CatRoleModel } from "../../../domain/models/cat-role.model";
+import { CatRoleModel } from "../../../../core/domain/models/cat-role.model";
 import { ICatRoleRepository } from "../../../domain/repositories/cat-role.interface.repository";
 import { CatRoleSchema } from "../schemas/cat-role.schema";
 

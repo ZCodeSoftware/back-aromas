@@ -8,6 +8,9 @@ export type CatPaymentMethodDocument = HydratedDocument<CatPaymentMethod>;
 export class CatPaymentMethod {
     @Prop({ unique: true })
     name: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const CatPaymentMethodSchema = SchemaFactory.createForClass(CatPaymentMethod);

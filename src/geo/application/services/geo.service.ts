@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { GeoModel } from "../../domain/models/geo.model";
 import { IGeoRepository } from "../../domain/repositories/geo.interface.repository";
 import { IGeoService } from "../../domain/services/geo.interface.service";
-import { ICreateGeo } from "../../domain/types/geo.type";
+import { ICreateGeo, IUpdateGeo } from "../../domain/types/geo.type";
 import SymbolsGeo from "../../symbols-geo";
 
 @Injectable()
@@ -23,5 +23,14 @@ export class GeoService implements IGeoService {
 
     async findAll(): Promise<GeoModel[]> {
         return this.geoRepository.findAll();
+    }
+
+    async update(id: string, geo: IUpdateGeo): Promise<GeoModel> {
+        const geoModel = GeoModel.create(geo);
+        return this.geoRepository.update(id, geoModel);
+    }
+
+    async delete(id: string): Promise<GeoModel> {
+        return this.geoRepository.softDelete(id);
     }
 }

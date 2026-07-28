@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatEssenceService } from "../../../domain/services/cat-essence.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateEssenceDTO } from "../dtos/cat-essence.dto";
+import { CreateEssenceDTO, UpdateEssenceDTO } from "../dtos/cat-essence.dto";
 
 
 @ApiTags('cat-essence')
@@ -67,6 +67,45 @@ export class CatEssenceController {
     )
     async findById(@Param('id') id: string) {
         return this.catEssenceService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Essence updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Essence not Found'
+        }
+    )
+    @ApiBody({ type: UpdateEssenceDTO, description: 'Data to update an Essence' })
+    async update(@Param('id') id: string, @Body() body: UpdateEssenceDTO) {
+        return this.catEssenceService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Essence deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Essence not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catEssenceService.delete(id);
     }
 
 

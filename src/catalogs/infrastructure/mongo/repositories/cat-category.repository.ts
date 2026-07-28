@@ -25,13 +25,13 @@ export class CatCategoryRepository implements ICatCategoryRepository {
     }
 
     async findAll(): Promise<CatCategoryModel[]> {
-        const categories = await this.catCategoryDB.find().populate('subCategories')
+        const categories = await this.catCategoryDB.find({ isActive: true }).populate('subCategories')
 
         return categories.map((c) => CatCategoryModel.hydrate(c))
     }
 
     async findById(id: string): Promise<CatCategoryModel | null> {
-        const category = await this.catCategoryDB.findById(id).populate('subCategories')
+        const category = await this.catCategoryDB.findOne({ _id: id, isActive: true }).populate('subCategories')
 
         if (!category) return null;
         return CatCategoryModel.hydrate(category)
@@ -53,5 +53,13 @@ export class CatCategoryRepository implements ICatCategoryRepository {
         if (!categoryToUpdate) throw new BaseErrorException(`Category Shouldn't be updated`, HttpStatus.BAD_REQUEST)
 
         return CatCategoryModel.hydrate(categoryToUpdate)
+    }
+
+    async softDelete(id: string): Promise<CatCategoryModel> {
+        const category = await this.catCategoryDB.findByIdAndUpdate(id, { isActive: false }, { new: true })
+
+        if (!category) throw new BaseErrorException(`Category not found`, HttpStatus.NOT_FOUND)
+
+        return CatCategoryModel.hydrate(category)
     }
 }

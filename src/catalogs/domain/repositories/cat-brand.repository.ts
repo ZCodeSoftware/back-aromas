@@ -4,4 +4,6 @@ export interface ICatBrandRepository {
     create(brand: CatBrandModel): Promise<CatBrandModel>;
     findById(id: string): Promise<CatBrandModel | null>;
     findAll(): Promise<CatBrandModel[]>;
+    update(id: string, brand: CatBrandModel): Promise<CatBrandModel>;
+    softDelete(id: string): Promise<CatBrandModel>;
 }

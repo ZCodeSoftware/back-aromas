@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
+import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
 import { ICatRoleService } from "../../../domain/services/cat-role.interface.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
-import { CreateRoleDTO } from "../dtos/cat-role.dto";
+import { CreateRoleDTO, UpdateRoleDTO } from "../dtos/cat-role.dto";
 
 @ApiTags('cat-role')
 @Controller('cat-role')
@@ -35,5 +37,24 @@ export class CatRoleController {
     @ApiResponse({ status: 404, description: 'Role not found' })
     async findById(@Param('id') id: string) {
         return this.catRoleService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Role updated' })
+    @ApiResponse({ status: 404, description: 'Role not found' })
+    @ApiBody({ type: UpdateRoleDTO, description: 'Data to update a Role' })
+    async update(@Param('id') id: string, @Body() body: UpdateRoleDTO) {
+        return this.catRoleService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Role deactivated (soft delete)' })
+    @ApiResponse({ status: 404, description: 'Role not found' })
+    async delete(@Param('id') id: string) {
+        return this.catRoleService.delete(id);
     }
 }
