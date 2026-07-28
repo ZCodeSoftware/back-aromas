@@ -7,6 +7,7 @@ import {
   catColorRepository,
   catEssenceRepository,
   catSubCategoryRepository,
+  metricsRepository,
   productRepository,
   productService,
 } from './infrastructure/nest/constants/custom-provider';
@@ -17,14 +18,15 @@ import {
   catColorSchema,
   catEssenceSchema,
   catSubCategorySchema,
+  metricsSchema,
   productSchema,
 } from './infrastructure/nest/constants/custom-schema';
 import { ProductController } from './infrastructure/nest/controllers/product.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([productSchema, catBrandSchema, catEssenceSchema, catColorSchema, catCategorySchema, catSubCategorySchema, catAssociatedEmotionSchema])],
+  imports: [MongooseModule.forFeature([productSchema, catBrandSchema, catEssenceSchema, catColorSchema, catCategorySchema, catSubCategorySchema, catAssociatedEmotionSchema, metricsSchema])],
   controllers: [ProductController],
-  providers: [productService, productRepository, catBrandRepository, catAssociatedEmotionRepository, catEssenceRepository, catColorRepository, catCategoryRepository, catSubCategoryRepository],
+  providers: [productService, productRepository, catBrandRepository, catAssociatedEmotionRepository, catEssenceRepository, catColorRepository, catCategoryRepository, catSubCategoryRepository, metricsRepository],
   exports: []
 })
 export class ProductModule { }

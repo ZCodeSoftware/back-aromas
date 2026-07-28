@@ -3,7 +3,7 @@ import { ICatEssenceService } from "../../domain/services/cat-essence.service";
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatEssenceRepository } from "../../domain/repositories/cat-essence.repository";
 import { CatEssenceModel } from "../../domain/models/cat-essence.model";
-import { ICreateEssence } from "../../domain/types/cat-essence.type";
+import { ICreateEssence, IUpdateEssence } from "../../domain/types/cat-essence.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
 
@@ -28,5 +28,14 @@ export class CatEssenceService implements ICatEssenceService {
         const essence = await this.catEssenceRepository.findById(id)
         if (!essence) throw new BaseErrorException("Essence not found", HttpStatus.BAD_REQUEST)
         return essence
+    }
+
+    async update(id: string, essence: IUpdateEssence): Promise<CatEssenceModel> {
+        const catEssenceModel = CatEssenceModel.create(essence)
+        return await this.catEssenceRepository.update(id, catEssenceModel)
+    }
+
+    async delete(id: string): Promise<CatEssenceModel> {
+        return await this.catEssenceRepository.softDelete(id)
     }
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
 import { ICatPaymentMethodService } from "../../../domain/services/cat-payment-method.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
-import { CreatePaymentMethodDTO } from "../dtos/cat-payment-method.dto";
+import { CreatePaymentMethodDTO, UpdatePaymentMethodDTO } from "../dtos/cat-payment-method.dto";
 
 
 
@@ -68,6 +68,45 @@ export class CatPaymentMethodController {
     )
     async findById(@Param('id') id: string) {
         return this.catPaymentMethodService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Payment Method updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Payment Method not Found'
+        }
+    )
+    @ApiBody({ type: UpdatePaymentMethodDTO, description: 'Data to update a Payment Method' })
+    async update(@Param('id') id: string, @Body() body: UpdatePaymentMethodDTO) {
+        return this.catPaymentMethodService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Payment Method deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Payment Method not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catPaymentMethodService.delete(id);
     }
 
 

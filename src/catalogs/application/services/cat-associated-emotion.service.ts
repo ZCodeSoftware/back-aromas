@@ -3,7 +3,7 @@ import { ICatAssociatedEmotionService } from "../../domain/services/cat-associat
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatAssociatedEmotionRepository } from "../../domain/repositories/cat-associated-emotion.repository";
 import { CatAssociatedEmotionModel } from "../../domain/models/cat-associated-emotion.model";
-import { ICreateAssociatedEmotion } from "../../domain/types/cat-associated-emotion.type";
+import { ICreateAssociatedEmotion, IUpdateAssociatedEmotion } from "../../domain/types/cat-associated-emotion.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
 
@@ -35,5 +35,13 @@ export class CatAssociatedEmotionService implements ICatAssociatedEmotionService
         return associatedEmotion
     }
 
+    async update(id: string, associatedEmotion: IUpdateAssociatedEmotion): Promise<CatAssociatedEmotionModel> {
+        const catAssociatedEmotionModel = CatAssociatedEmotionModel.create(associatedEmotion)
+        return await this.catAssociatedEmotionRepository.update(id, catAssociatedEmotionModel)
+    }
+
+    async delete(id: string): Promise<CatAssociatedEmotionModel> {
+        return await this.catAssociatedEmotionRepository.softDelete(id)
+    }
 
 }

@@ -8,6 +8,9 @@ export type CatAssociatedEmotionDocument = HydratedDocument<CatAssociatedEmotion
 export class CatAssociatedEmotion {
     @Prop({ unique: true })
     name: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const CatAssociatedEmotionSchema = SchemaFactory.createForClass(CatAssociatedEmotion);

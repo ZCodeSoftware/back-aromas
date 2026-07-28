@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
 import { ICatCategoryService } from "../../../domain/services/cat-category.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
-import { CreateCategoryDTO } from "../dtos/cat-category.dto";
+import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/cat-category.dto";
 
 
 @ApiTags('cat-category')
@@ -87,7 +87,27 @@ export class CatCategoryContorller {
             description: `Category shouldn't be updated`
         }
     )
-    async update(@Param('id') id: string, @Body() body: Partial<CreateCategoryDTO>) {
+    @ApiBody({ type: UpdateCategoryDTO, description: 'Data to update a Category' })
+    async update(@Param('id') id: string, @Body() body: UpdateCategoryDTO) {
         return this.catCategoryService.update(id, body);
+    }
+
+    @Delete(':id')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Category deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Category not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catCategoryService.delete(id);
     }
 }

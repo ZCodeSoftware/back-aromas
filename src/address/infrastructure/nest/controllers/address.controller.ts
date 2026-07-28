@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { IUserRequest } from "../../../../core/infrastructure/nest/dtos/custom-request/user.request";
@@ -50,5 +50,15 @@ export class AddressController {
     @ApiBody({ type: UpdateAddressDTO, description: 'Data to update a Product' })
     async update(@Param('id') id: string, @Body() body: UpdateAddressDTO) {
         return this.addressService.update(id, body);
+    }
+
+    @Delete(':id')
+    @HttpCode(200)
+    @UseGuards(AuthGuards)
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 200, description: 'Address deactivated (soft delete)' })
+    @ApiResponse({ status: 404, description: 'Address not found' })
+    async delete(@Param('id') id: string) {
+        return this.addressService.delete(id);
     }
 }

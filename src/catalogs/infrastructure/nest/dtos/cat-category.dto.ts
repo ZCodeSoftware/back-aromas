@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 
 export class CreateCategoryDTO {
@@ -24,4 +24,33 @@ export class CreateCategoryDTO {
         }
     )
     subCategories?: string[];
+}
+
+export class UpdateCategoryDTO {
+    @IsString()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Category name',
+        example: 'Category name',
+        type: String,
+    })
+    name?: string;
+
+    @IsArray()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Sub-Categories id',
+        example: 'Sub-Categories id',
+        type: [String],
+    })
+    subCategories?: string[];
+
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Soft-delete flag. Send false to deactivate, true to restore',
+        example: true,
+        type: Boolean,
+    })
+    isActive?: boolean;
 }

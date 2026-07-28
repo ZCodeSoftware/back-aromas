@@ -6,4 +6,5 @@ export interface IAddressService {
     findById(id: string): Promise<AddressModel>;
     findAll(): Promise<AddressModel[]>;
     update(id: string, address: Partial<ICreateAddress>): Promise<AddressModel>;
+    delete(id: string): Promise<AddressModel>;
 }

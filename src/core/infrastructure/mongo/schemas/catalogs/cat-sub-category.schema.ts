@@ -7,6 +7,9 @@ export type CatSubCategoryDocument = HydratedDocument<CatSubCategory>;
 export class CatSubCategory {
   @Prop({ unique: true })
   name: string;
+
+  @Prop({ required: false, type: Boolean, default: true })
+  isActive: boolean;
 }
 
 export const CatSubCategorySchema = SchemaFactory.createForClass(CatSubCategory);

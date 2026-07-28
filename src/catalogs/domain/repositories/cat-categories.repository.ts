@@ -6,4 +6,5 @@ export interface ICatCategoryRepository {
     findById(id: string): Promise<CatCategoryModel | null>;
     findAll(): Promise<CatCategoryModel[]>;
     update(id: string, updateCategory: CatCategoryModel): Promise<CatCategoryModel>;
+    softDelete(id: string): Promise<CatCategoryModel>;
 }

@@ -61,9 +61,8 @@ export class ProductRepository implements IProductRepository {
 
         const filters: any = {};
 
-        if (isActive !== undefined) {
-            filters.is_active = isActive;
-        }
+        // Soft-deleted products stay out of the listing unless explicitly asked for.
+        filters.isActive = isActive !== undefined ? isActive : true;
 
         if (search) {
             filters.$or = [
@@ -145,5 +144,16 @@ export class ProductRepository implements IProductRepository {
         if (!productToUpdate) throw new BaseErrorException(`Product shouldn't be updated`, HttpStatus.BAD_REQUEST);
 
         return ProductModel.hydrate(productToUpdate);
+    }
+
+    async softDelete(id: string): Promise<ProductModel> {
+        const product = await this.productDB
+            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .populate('associatedEmotion essence brand color subCategory')
+            .populate({ path: 'category', select: 'name _id' });
+
+        if (!product) throw new BaseErrorException('Product not found', HttpStatus.NOT_FOUND);
+
+        return ProductModel.hydrate(product);
     }
 }

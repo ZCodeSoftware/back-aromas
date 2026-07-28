@@ -5,4 +5,6 @@ export interface ICatPaymentMethodRepository {
     create(PaymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel>;
     findById(id: string): Promise<CatPaymentMethodModel | null>;
     findAll(): Promise<CatPaymentMethodModel[]>
+    update(id: string, paymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel>;
+    softDelete(id: string): Promise<CatPaymentMethodModel>;
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatColorService } from "../../../domain/services/cat-color.interface.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateColorDTO } from "../dtos/cat-color.dto";
+import { CreateColorDTO, UpdateColorDTO } from "../dtos/cat-color.dto";
 
 
 
@@ -40,5 +40,24 @@ export class CatColorController {
     @ApiResponse({ status: 404, description: 'Color not found' })
     async findById(@Param('id') id: string) {
         return this.catColorService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Color updated' })
+    @ApiResponse({ status: 404, description: 'Color not found' })
+    @ApiBody({ type: UpdateColorDTO, description: 'Data to update a Color' })
+    async update(@Param('id') id: string, @Body() body: UpdateColorDTO) {
+        return this.catColorService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Color deactivated (soft delete)' })
+    @ApiResponse({ status: 404, description: 'Color not found' })
+    async delete(@Param('id') id: string) {
+        return this.catColorService.delete(id);
     }
 }

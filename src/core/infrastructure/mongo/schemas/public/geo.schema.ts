@@ -10,6 +10,9 @@ export class Geo {
 
     @Prop({ type: String, required: true })
     lng: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const GeoSchema = SchemaFactory.createForClass(Geo);

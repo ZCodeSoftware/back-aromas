@@ -7,4 +7,6 @@ export interface IProductRepository {
     findById(id: string): Promise<ProductModel>;
     findAll(options: FilterOptionsDTO): Promise<PaginatedResponse<ProductModel>>
     update(id: string, product: ProductModel): Promise<ProductModel>;
+    /** Soft delete: flips isActive to false, the row is kept. */
+    softDelete(id: string): Promise<ProductModel>;
 }

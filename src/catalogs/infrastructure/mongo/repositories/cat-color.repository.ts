@@ -17,20 +17,41 @@ export class CatColorRepository implements ICatColorRepository {
         const newCatColor = await schema.save();
 
         if (!newCatColor) throw new BaseErrorException(`Color shouldn't be created`, HttpStatus.BAD_REQUEST);
-        
+
         return CatColorModel.hydrate(newCatColor);
     }
 
     async findById(id: string): Promise<CatColorModel | null>{
-        const color = await this.catColorDB.findById(id);
+        const color = await this.catColorDB.findOne({ _id: id, isActive: true });
         if(!color) return null;
 
         return CatColorModel.hydrate(color);
     }
 
     async findAll(): Promise<CatColorModel[]>{
-        const colors = await this.catColorDB.find();
+        const colors = await this.catColorDB.find({ isActive: true });
 
         return colors.map((color)=>CatColorModel.hydrate(color))
+    }
+
+    async update(id: string, color: CatColorModel): Promise<CatColorModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(color.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const colorToUpdate = await this.catColorDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!colorToUpdate) throw new BaseErrorException(`Color not found`, HttpStatus.NOT_FOUND);
+
+        return CatColorModel.hydrate(colorToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatColorModel> {
+        const color = await this.catColorDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!color) throw new BaseErrorException(`Color not found`, HttpStatus.NOT_FOUND);
+
+        return CatColorModel.hydrate(color);
     }
 }

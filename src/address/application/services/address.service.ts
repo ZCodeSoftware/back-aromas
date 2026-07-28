@@ -1,15 +1,14 @@
 import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import SymbolsCatalogs from "../../../catalogs/symbols-catalogs";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
+import { IUserRepository } from "../../../core/domain/repositories/user.interface.repository";
 import SymbolsGeo from "../../../geo/symbols-geo";
 import SymbolsUser from "../../../user/symbols-user";
 import { AddressModel } from "../../domain/models/address.model";
 import { GeoModel } from "../../domain/models/geo.model";
-import { UserModel } from "../../domain/models/user.model";
 import { IAddressRepository } from "../../domain/repositories/address.interface.repository";
 import { ICatTypeHousingRepository } from "../../domain/repositories/cat-type-housing.repository";
 import { IGeoRepository } from "../../domain/repositories/geo.interface.repository";
-import { IUserRepository } from "../../domain/repositories/user.interface.repository";
 import { IAddressService } from "../../domain/services/address.interface.service";
 import { ICreateAddress, IGeo } from "../../domain/types/address.type";
 import SymbolsAddress from "../../symbols-address";
@@ -50,8 +49,6 @@ export class AddressService implements IAddressService {
         if (addressModelSaved) {
             const user = await this.userRepository.findById(userId);
             if (user) {
-                console.log('¿Es user una instancia de UserModel?', user instanceof UserModel); // Debería ser true
-                console.log('Tipo de user.addAddress:', typeof user.addAddress); // Debería ser 'function'
                 user.addAddress(addressModelSaved);
                 await this.userRepository.update(user);
             }
@@ -81,6 +78,10 @@ export class AddressService implements IAddressService {
         await this.updateGeo(updatedAddress, existingAddress, geo);
 
         return this.addressRepository.update(id, updatedAddress);
+    }
+
+    async delete(id: string): Promise<AddressModel> {
+        return this.addressRepository.softDelete(id);
     }
 
     private async updateTypeOfHousing(updatedAddress: AddressModel, typeOfHousing?: string) {

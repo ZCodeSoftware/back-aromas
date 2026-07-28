@@ -22,13 +22,34 @@ export class CatRoleRepository implements ICatRoleRepository {
     }
 
     async findById(id: string): Promise<CatRoleModel | null> {
-        const role = await this.catRoleDB.findById(id);
+        const role = await this.catRoleDB.findOne({ _id: id, isActive: true });
         if (!role) return null;
         return CatRoleModel.hydrate(role);
     }
 
     async findAll(): Promise<CatRoleModel[]> {
-        const roles = await this.catRoleDB.find();
+        const roles = await this.catRoleDB.find({ isActive: true });
         return roles?.map(role => CatRoleModel.hydrate(role));
+    }
+
+    async update(id: string, role: CatRoleModel): Promise<CatRoleModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(role.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const roleToUpdate = await this.catRoleDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!roleToUpdate) throw new BaseErrorException(`Role not found`, HttpStatus.NOT_FOUND);
+
+        return CatRoleModel.hydrate(roleToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatRoleModel> {
+        const role = await this.catRoleDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!role) throw new BaseErrorException(`Role not found`, HttpStatus.NOT_FOUND);
+
+        return CatRoleModel.hydrate(role);
     }
 }

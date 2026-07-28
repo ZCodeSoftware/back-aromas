@@ -5,4 +5,6 @@ export interface ICatTypeHousingRepository{
     create(typeHousing : CatTypeHousingModel): Promise<CatTypeHousingModel>;
     findById(id:string): Promise<CatTypeHousingModel|null>;
     findAll():Promise<CatTypeHousingModel[]>
+    update(id: string, typeHousing: CatTypeHousingModel): Promise<CatTypeHousingModel>;
+    softDelete(id: string): Promise<CatTypeHousingModel>;
 }

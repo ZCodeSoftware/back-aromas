@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateGeoDTO {
     @IsString()
@@ -23,4 +23,33 @@ export class CreateGeoDTO {
         name: 'lng'
     })
     lng: string;
+}
+
+export class UpdateGeoDTO {
+    @IsString()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Latitude of the geographical location',
+        example: '34.0522',
+        type: String,
+    })
+    lat?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Longitude of the geographical location',
+        example: '-118.2437',
+        type: String,
+    })
+    lng?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Soft-delete flag. Send false to deactivate, true to restore',
+        example: true,
+        type: Boolean,
+    })
+    isActive?: boolean;
 }

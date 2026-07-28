@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatAssociatedEmotionService } from "../../../domain/services/cat-associated-emotion.service";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateAssociatedEmotionDTO } from "../dtos/cat-associated-emotion.dto";
+import { CreateAssociatedEmotionDTO, UpdateAssociatedEmotionDTO } from "../dtos/cat-associated-emotion.dto";
 
 @ApiTags('cat-associated-emotion')
 @Controller('cat-associated-emotion')
@@ -68,5 +68,44 @@ export class CatAssociatedEmotionController {
     async findById(@Param('id') id:string ){
         return this.catAssociatedEmotionService.findById(id);
     }
-    
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Associated Emotion updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Associated Emotion not Found'
+        }
+    )
+    @ApiBody({ type: UpdateAssociatedEmotionDTO, description: 'Data to update an Associated Emotion' })
+    async update(@Param('id') id: string, @Body() body: UpdateAssociatedEmotionDTO) {
+        return this.catAssociatedEmotionService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Associated Emotion deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Associated Emotion not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catAssociatedEmotionService.delete(id);
+    }
+
 }

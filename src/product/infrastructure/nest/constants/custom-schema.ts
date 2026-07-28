@@ -4,7 +4,13 @@ import { CatCategory, CatCategorySchema } from '../../../../core/infrastructure/
 import { CatColor, CatColorSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-color.schema';
 import { CatEssence, CatEssenceSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-essence.schema';
 import { CatSubCategory, CatSubCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-sub-category.schema';
+import { Metrics, MetricsSchema } from '../../../../core/infrastructure/mongo/schemas/public/metrics.schema';
 import { Product, ProductSchema } from '../../../../core/infrastructure/mongo/schemas/public/product.schema';
+
+export const metricsSchema = {
+  name: Metrics.name,
+  schema: MetricsSchema,
+};
 
 export const productSchema = {
   name: Product.name,

@@ -7,6 +7,9 @@ export type CatEseenceDocument = HydratedDocument<CatEssence>
 export class CatEssence {
     @Prop({ unique: true })
     name: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const CatEssenceSchema = SchemaFactory.createForClass(CatEssence);
