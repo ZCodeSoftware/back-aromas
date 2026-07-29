@@ -54,6 +54,11 @@ export class UserModel extends BaseModel {
     this._roles.push(role);
   }
 
+  /** Replaces the full role set, unlike `addRole` which only appends. */
+  setRoles(roles: CatRoleModel[]): void {
+    this._roles = roles;
+  }
+
   addAddress(address: any): void {
     if (!this._address) {
       this._address = [];

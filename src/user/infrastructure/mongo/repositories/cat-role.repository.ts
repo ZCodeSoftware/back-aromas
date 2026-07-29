@@ -16,4 +16,9 @@ export class CatRoleRepository implements ICatRoleRepository {
         if (!role) return null;
         return CatRoleModel.hydrate(role);
     }
+
+    async findByIds(ids: string[]): Promise<CatRoleModel[]> {
+        const roles = await this.catRoleDB.find({ _id: { $in: ids } });
+        return roles.map(role => CatRoleModel.hydrate(role));
+    }
 }
