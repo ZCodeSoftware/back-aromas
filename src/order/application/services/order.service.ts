@@ -15,13 +15,14 @@ import { OrderItemModel } from "../../domain/models/order-item.model";
 import { OrderModel } from "../../domain/models/order.model";
 import { IAddressRepository } from "../../domain/repositories/address.interface.repository";
 import { ICartRepository } from "../../domain/repositories/cart.interface.repository";
+import { ICatOrderStatusRepository } from "../../domain/repositories/cat-order-status.interface.repository";
 import { ICatPaymentMethodRepository } from "../../domain/repositories/cat-payment-method.interface.repository";
 import { IMetricsRepository } from "../../domain/repositories/metrics.interface.repository";
 import { IOrderRepository } from "../../domain/repositories/order.interface.repository";
 import { IProductRepository } from "../../domain/repositories/product.interface.repository";
 import { IOrderService } from "../../domain/services/order.interface.service";
 import { IStockReservationService } from "../../domain/services/stock-reservation.interface.service";
-import { ICreateOrder, IOrderCartItem, IOrderFilterOptions, IOrderLine } from "../../domain/types/order.type";
+import { ICreateOrder, IOrderCartItem, IOrderFilterOptions, IOrderLine, IOrderStatusRef } from "../../domain/types/order.type";
 import SymbolsOrder from "../../symbols-order";
 
 @Injectable()
@@ -39,6 +40,8 @@ export class OrderService implements IOrderService {
         private readonly addressRepository: IAddressRepository,
         @Inject(SymbolsCatalogs.ICatPaymentMethodRepository)
         private readonly catPaymentMethodRepository: ICatPaymentMethodRepository,
+        @Inject(SymbolsCatalogs.ICatOrderStatusRepository)
+        private readonly catOrderStatusRepository: ICatOrderStatusRepository,
         @Inject(SymbolsUser.IUserRepository)
         private readonly userRepository: IUserRepository,
         @Inject(SymbolsAnalytics.IMetricsRepository)
@@ -67,6 +70,7 @@ export class OrderService implements IOrderService {
             user: userId,
             shippingType: order.shippingType,
             shippingPrice: order.shippingPrice ?? 0,
+            status: await this.resolveStatus(OrderStatus.PENDING),
         });
         orderModel.setPaymentMethod({ _id: paymentMethod._id });
         lines.forEach(({ product, quantity }) =>
@@ -112,17 +116,17 @@ export class OrderService implements IOrderService {
     }
 
     async findByUser(userId: string, options: IOrderFilterOptions): Promise<PaginatedResponse<OrderModel>> {
-        return this.orderRepository.findAll({ ...options, userId });
+        return this.orderRepository.findAll({ ...(await this.withStatusId(options)), userId });
     }
 
     async findAll(options: IOrderFilterOptions): Promise<PaginatedResponse<OrderModel>> {
-        return this.orderRepository.findAll(options);
+        return this.orderRepository.findAll(await this.withStatusId(options));
     }
 
     async changeStatus(id: string, status: OrderStatus): Promise<OrderModel> {
         const order = await this.orderRepository.findById(id);
 
-        order.changeStatus(status);
+        order.changeStatus(await this.resolveStatus(status));
 
         if (STOCK_RESTORING_STATUSES.includes(status)) {
             await this.stockReservation.restoreOnce(order);
@@ -145,10 +149,34 @@ export class OrderService implements IOrderService {
             );
         }
 
-        order.changeStatus(OrderStatus.CANCELLED);
+        order.changeStatus(await this.resolveStatus(OrderStatus.CANCELLED));
         await this.stockReservation.restoreOnce(order);
 
         return this.orderRepository.update(id, order);
+    }
+
+    /**
+     * The catalogue row behind a code. A missing row is a broken installation, not
+     * a bad request: the codes come from the enum the seeder writes.
+     */
+    private async resolveStatus(code: OrderStatus): Promise<IOrderStatusRef> {
+        const status = await this.catOrderStatusRepository.findByCode(code);
+
+        if (!status) {
+            throw new BaseErrorException(
+                `Order status ${code} is missing from the catalogue`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+
+        return status;
+    }
+
+    /** Turns the status code of a filter into the id the documents carry. */
+    private async withStatusId(options: IOrderFilterOptions): Promise<IOrderFilterOptions> {
+        if (!options.status) return options;
+
+        return { ...options, statusId: (await this.resolveStatus(options.status))._id };
     }
 
     /** Loads each product fresh and checks it can still be sold. */

@@ -15,9 +15,14 @@ const product = (over: Partial<any> = {}) => ({
     ...over,
 });
 
+/** A row of cat_order_status as the catalogue repository returns it. */
+const status = (code: OrderStatus) => ({ _id: `st_${code}`, code, name: code });
+
 /** Real StockReservationService over a mocked product repo: the compensating
  *  release is the part worth exercising, not a stub of it. */
-const build = (over: { products?: any; order?: any; payment?: any; user?: any; metrics?: any } = {}) => {
+const build = (
+    over: { products?: any; order?: any; payment?: any; orderStatus?: any; user?: any; metrics?: any } = {},
+) => {
     const productRepository = {
         findById: jest.fn().mockResolvedValue(product()),
         decrementStock: jest.fn().mockResolvedValue(true),
@@ -35,6 +40,11 @@ const build = (over: { products?: any; order?: any; payment?: any; user?: any; m
         findById: jest.fn().mockResolvedValue({ _id: 'pm1', name: 'CASH' }),
         ...over.payment,
     };
+    const catOrderStatusRepository = {
+        findByCode: jest.fn().mockImplementation((code: OrderStatus) => Promise.resolve(status(code))),
+        idsByCodes: jest.fn().mockResolvedValue([]),
+        ...over.orderStatus,
+    };
     const userRepository = {
         findById: jest.fn().mockResolvedValue({
             toJSON: () => ({ firstName: 'Ana', lastName: 'Pérez', email: 'a@b.com', phone: '123' }),
@@ -51,12 +61,21 @@ const build = (over: { products?: any; order?: any; payment?: any; user?: any; m
         orderRepository as any,
         productRepository as any,
         catPaymentMethodRepository as any,
+        catOrderStatusRepository as any,
         userRepository as any,
         metricsRepository as any,
         stockReservation,
     );
 
-    return { service, productRepository, orderRepository, catPaymentMethodRepository, userRepository, metricsRepository };
+    return {
+        service,
+        productRepository,
+        orderRepository,
+        catPaymentMethodRepository,
+        catOrderStatusRepository,
+        userRepository,
+        metricsRepository,
+    };
 };
 
 describe('PosService', () => {
@@ -71,7 +90,8 @@ describe('PosService', () => {
 
             const json = sale.toJSON();
             expect(json.channel).toBe(OrderChannel.POS);
-            expect(json.status).toBe(OrderStatus.PAID);
+            expect(sale.status).toBe(OrderStatus.PAID);
+            expect(sale.statusId).toBe('st_PAID');
             expect(json.shippingType).toBe(ShippingType.PICKUP);
             expect(json.soldBy).toBe('admin1');
             expect(json.totalPrice).toBe(200);
@@ -238,7 +258,7 @@ describe('PosService', () => {
 
     describe('refund', () => {
         const paidPosSale = () => {
-            const sale = OrderModel.createPosSale({ soldBy: 'admin1' });
+            const sale = OrderModel.createPosSale({ soldBy: 'admin1', status: status(OrderStatus.PAID) });
             sale.addItem(
                 OrderItemModel.create({
                     product: { _id: 'p1' },
@@ -269,7 +289,11 @@ describe('PosService', () => {
         });
 
         it('refuses to refund an online order through the POS endpoint', async () => {
-            const onlineOrder = OrderModel.create({ user: 'u1', shippingType: ShippingType.PICKUP });
+            const onlineOrder = OrderModel.create({
+                user: 'u1',
+                shippingType: ShippingType.PICKUP,
+                status: status(OrderStatus.PENDING),
+            });
             const { service, productRepository } = build({
                 order: { findById: jest.fn().mockResolvedValue(onlineOrder) },
             });

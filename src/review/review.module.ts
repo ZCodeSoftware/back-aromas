@@ -7,6 +7,7 @@ import {
   reviewService,
 } from './infrastructure/nest/constants/custom-provider';
 import {
+  catOrderStatusSchema,
   orderSchema,
   productSchema,
   reviewSchema,
@@ -14,7 +15,7 @@ import {
 import { ReviewController } from './infrastructure/nest/controllers/review.controller';
 
 @Module({
-  imports: [MongooseModule.forFeature([reviewSchema, productSchema, orderSchema])],
+  imports: [MongooseModule.forFeature([reviewSchema, productSchema, orderSchema, catOrderStatusSchema])],
   controllers: [ReviewController],
   providers: [reviewService, reviewRepository, productRepository, orderRepository],
   exports: []

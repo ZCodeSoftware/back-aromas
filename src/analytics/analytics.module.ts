@@ -11,6 +11,7 @@ import {
 } from './infrastructure/nest/constants/custom-provider';
 import {
   cartSchema,
+  catOrderStatusSchema,
   catPaymentMethodSchema,
   metricsSchema,
   orderSchema,
@@ -28,6 +29,7 @@ import { AnalyticsController } from './infrastructure/nest/controllers/analytics
       userSchema,
       cartSchema,
       catPaymentMethodSchema,
+      catOrderStatusSchema,
     ]),
   ],
   controllers: [AnalyticsController],

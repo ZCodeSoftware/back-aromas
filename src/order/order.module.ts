@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   addressRepository,
   cartRepository,
+  catOrderStatusRepository,
   catPaymentMethodRepository,
   metricsRepository,
   orderRepository,
@@ -14,6 +15,7 @@ import {
 import {
   addressSchema,
   cartSchema,
+  catOrderStatusSchema,
   catPaymentMethodSchema,
   metricsSchema,
   orderSchema,
@@ -30,6 +32,7 @@ import { PosController } from './infrastructure/nest/controllers/pos.controller'
       productSchema,
       addressSchema,
       catPaymentMethodSchema,
+      catOrderStatusSchema,
       metricsSchema,
     ]),
   ],
@@ -43,6 +46,7 @@ import { PosController } from './infrastructure/nest/controllers/pos.controller'
     productRepository,
     addressRepository,
     catPaymentMethodRepository,
+    catOrderStatusRepository,
     metricsRepository,
   ],
   exports: []

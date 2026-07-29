@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
+import { CatOrderStatus } from "../catalogs/cat-order-status.schema";
 import { CatPaymentMethod } from "../catalogs/cat-payment-method.schema";
 import { Address } from "./address.schema";
 import { Product } from "./product.schema";
@@ -106,17 +107,18 @@ export class Order {
     @Prop({ required: false, name: 'shippingAddress', type: OrderShippingAddressSchema })
     shippingAddress?: OrderShippingAddress;
 
-    @Prop({ required: true, name: 'status', type: String, default: 'PENDING', index: true })
-    status: string;
+    @Prop({ required: true, name: 'status', type: mongoose.Schema.Types.ObjectId, ref: 'CatOrderStatus', index: true })
+    status: CatOrderStatus;
 
     /** Guards the cancel flow so stock is never given back twice. */
     @Prop({ required: true, name: 'stockRestored', type: Boolean, default: false })
     stockRestored: boolean;
 
     /**
-     * Where the sale happened. Kept as a plain string, like `status`, because
-     * `src/core` must not import from a feature module. Documents created before
-     * the point-of-sale feature have no such field: reads treat missing as ONLINE.
+     * Where the sale happened. Kept as a plain string, unlike `status`, because
+     * there is no channel catalogue and `src/core` must not import from a feature
+     * module. Documents created before the point-of-sale feature have no such
+     * field: reads treat missing as ONLINE.
      */
     @Prop({ required: true, name: 'channel', type: String, default: 'ONLINE' })
     channel: string;

@@ -1,11 +1,11 @@
-export enum OrderStatus {
-    PENDING = 'PENDING',
-    PAID = 'PAID',
-    SHIPPED = 'SHIPPED',
-    DELIVERED = 'DELIVERED',
-    CANCELLED = 'CANCELLED',
-    REFUNDED = 'REFUNDED',
-}
+import { OrderStatus } from '../../../core/domain/enums/order-status.enum';
+
+/**
+ * The codes themselves live in core, next to TypeRoles, because the catalogue
+ * module seeds them and three feature modules read them. Re-exported here so the
+ * order domain keeps naming its own lifecycle.
+ */
+export { OrderStatus };
 
 /**
  * Only these moves are accepted. DELIVERED, CANCELLED and REFUNDED are terminal,
@@ -14,6 +14,9 @@ export enum OrderStatus {
  * REFUNDED is distinct from CANCELLED on purpose: cancelled means the sale never
  * completed, refunded means the money was taken and given back. A counter sale is
  * born PAID, so collapsing the two would lose that difference forever.
+ *
+ * Deliberately kept in code and not in `cat_order_status`: an ABM typo here would
+ * duplicate a stock restore or hide revenue, which is not what a catalogue is for.
  */
 export const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
