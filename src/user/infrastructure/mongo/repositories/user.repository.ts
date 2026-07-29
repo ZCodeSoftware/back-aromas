@@ -7,6 +7,17 @@ import { IUserRepository } from "../../../../core/domain/repositories/user.inter
 import { USER_RELATIONS } from "../../../../core/infrastructure/nest/constants/relations.constant";
 import { UserSchema } from "../schemas/user.schema";
 
+/**
+ * `address` keeps the ref of soft-deleted addresses (the delete only flips
+ * `isActive`), so the populate has to filter them out or every user payload
+ * would ship addresses the client already deleted. Its own relations are
+ * populated here too, the same way the address repository does it.
+ */
+const USER_POPULATE = [
+    { path: 'roles' },
+    { path: 'address', match: { isActive: true }, populate: 'geo typeOfHousing' },
+];
+
 @Injectable()
 export class UserRepository implements IUserRepository {
     constructor(
@@ -23,7 +34,7 @@ export class UserRepository implements IUserRepository {
     }
 
     async findById(id: string): Promise<UserModel> {
-        const user = await this.userDB.findOne({ _id: id, isActive: true }).populate('roles address');
+        const user = await this.userDB.findOne({ _id: id, isActive: true }).populate(USER_POPULATE);
         if (!user) throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
         return UserModel.hydrate(user);
     }
@@ -34,14 +45,13 @@ export class UserRepository implements IUserRepository {
      * stay taken. Callers are responsible for rejecting an inactive user.
      */
     async findByEmail(email: string): Promise<UserModel | null> {
-        // `+password` because the field is `select: false`; login needs the hash to compare.
-        const user = await this.userDB.findOne({ email }).select('+password').populate('roles address');
+        const user = await this.userDB.findOne({ email }).select('+password').populate(USER_POPULATE);
         if (!user) return null;
         return UserModel.hydrate(user);
     }
 
     async findAll(): Promise<UserModel[]> {
-        const users = await this.userDB.find({ isActive: true }).populate('roles address');
+        const users = await this.userDB.find({ isActive: true }).populate(USER_POPULATE);
         return users?.map(user => UserModel.hydrate(user));
     }
 
@@ -62,7 +72,7 @@ export class UserRepository implements IUserRepository {
             user.id.toString(),
             filteredUpdateObject,
             { new: true }
-        ).populate('roles address');
+        ).populate(USER_POPULATE);
 
         if (!updatedUser) {
             throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
@@ -74,7 +84,7 @@ export class UserRepository implements IUserRepository {
     async softDelete(id: string): Promise<UserModel> {
         const user = await this.userDB
             .findByIdAndUpdate(id, { isActive: false }, { new: true })
-            .populate('roles address');
+            .populate(USER_POPULATE);
 
         if (!user) {
             throw new BaseErrorException('User not found', HttpStatus.NOT_FOUND);
