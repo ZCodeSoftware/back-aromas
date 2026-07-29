@@ -1,16 +1,23 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import SymbolsCatalogs from "../../../../catalogs/symbols-catalogs";
 import { BaseErrorException } from "../../../../core/domain/exceptions/base.error.exception";
 import { PaginatedResponse } from "../../../../core/domain/response/find-all-paginated.response";
 import { OrderChannel } from "../../../domain/enum/order-channel.enum";
 import { PURCHASED_STATUSES } from "../../../domain/enum/order-status.enum";
 import { OrderModel } from "../../../domain/models/order.model";
+import { ICatOrderStatusRepository } from "../../../domain/repositories/cat-order-status.interface.repository";
 import { IOrderRepository } from "../../../domain/repositories/order.interface.repository";
 import { IOrderFilterOptions } from "../../../domain/types/order.type";
 import { OrderSchema } from "../schemas/order.schema";
 
+/**
+ * `status` is populated everywhere on purpose: the state machine reads the code
+ * of the catalogue row, so an order hydrated without it could not be moved on.
+ */
 const ORDER_POPULATE = [
+    { path: 'status', select: 'code name _id' },
     { path: 'paymentMethod', select: 'name _id' },
     { path: 'items.product', select: 'name images _id' },
     { path: 'soldBy', select: 'firstName lastName _id' },
@@ -19,7 +26,9 @@ const ORDER_POPULATE = [
 @Injectable()
 export class OrderRepository implements IOrderRepository {
     constructor(
-        @InjectModel('Order') private readonly orderDB: Model<OrderSchema>
+        @InjectModel('Order') private readonly orderDB: Model<OrderSchema>,
+        @Inject(SymbolsCatalogs.ICatOrderStatusRepository)
+        private readonly catOrderStatusRepository: ICatOrderStatusRepository,
     ) { }
 
     async create(order: OrderModel): Promise<OrderModel> {
@@ -40,14 +49,14 @@ export class OrderRepository implements IOrderRepository {
     }
 
     async findAll(options: IOrderFilterOptions): Promise<PaginatedResponse<OrderModel>> {
-        const { page = 1, limit = 10, status, userId, dateFrom, dateTo, channel, soldBy } = options;
+        const { page = 1, limit = 10, statusId, userId, dateFrom, dateTo, channel, soldBy } = options;
 
         const currentPage = Math.max(1, page);
         const itemsPerPage = Math.min(Math.max(1, limit), 100);
         const skip = (currentPage - 1) * itemsPerPage;
 
         const filters: any = {};
-        if (status) filters.status = status;
+        if (statusId) filters.status = statusId;
         if (userId) filters.user = userId;
         if (soldBy) filters.soldBy = soldBy;
         if (channel === OrderChannel.POS) {
@@ -108,7 +117,7 @@ export class OrderRepository implements IOrderRepository {
         const count = await this.orderDB.countDocuments({
             user: userId,
             'items.product': productId,
-            status: { $in: PURCHASED_STATUSES },
+            status: { $in: await this.catOrderStatusRepository.idsByCodes(PURCHASED_STATUSES) },
         });
 
         return count > 0;

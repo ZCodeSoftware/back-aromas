@@ -1,3 +1,4 @@
+import { CatOrderStatus, CatOrderStatusSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-order-status.schema';
 import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
 import { Cart, CartSchema } from '../../../../core/infrastructure/mongo/schemas/public/cart.schema';
 import { Metrics, MetricsSchema } from '../../../../core/infrastructure/mongo/schemas/public/metrics.schema';
@@ -33,4 +34,9 @@ export const cartSchema = {
 export const catPaymentMethodSchema = {
   name: CatPaymentMethod.name,
   schema: CatPaymentMethodSchema,
+};
+
+export const catOrderStatusSchema = {
+  name: CatOrderStatus.name,
+  schema: CatOrderStatusSchema,
 };

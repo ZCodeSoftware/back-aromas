@@ -3,6 +3,7 @@ import { CatBrand, CatBrandSchema } from '../../../../core/infrastructure/mongo/
 import { CatCategory, CatCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-category.schema';
 import { CatColor, CatColorSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-color.schema';
 import { CatEssence, CatEssenceSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-essence.schema';
+import { CatOrderStatus, CatOrderStatusSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-order-status.schema';
 import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
 import { CatRole, CatRoleSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-role.schema';
 import { CatSubCategory, CatSubCategorySchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-sub-category.schema';
@@ -50,4 +51,9 @@ export const catBrandSchema = {
 export const catCategorySchema = {
   name: CatCategory.name,
   schema: CatCategorySchema,
+}
+
+export const catOrderStatusSchema = {
+  name: CatOrderStatus.name,
+  schema: CatOrderStatusSchema,
 }

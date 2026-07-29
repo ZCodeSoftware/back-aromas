@@ -10,6 +10,7 @@ import { OrderChannel } from "../../domain/enum/order-channel.enum";
 import { OrderStatus } from "../../domain/enum/order-status.enum";
 import { OrderItemModel } from "../../domain/models/order-item.model";
 import { OrderModel } from "../../domain/models/order.model";
+import { ICatOrderStatusRepository } from "../../domain/repositories/cat-order-status.interface.repository";
 import { ICatPaymentMethodRepository } from "../../domain/repositories/cat-payment-method.interface.repository";
 import { IMetricsRepository } from "../../domain/repositories/metrics.interface.repository";
 import { IOrderRepository } from "../../domain/repositories/order.interface.repository";
@@ -20,6 +21,7 @@ import {
     ICreatePosSale,
     IOrderFilterOptions,
     IOrderLine,
+    IOrderStatusRef,
     IPosSaleCustomer,
     IPosSaleItem,
 } from "../../domain/types/order.type";
@@ -36,6 +38,8 @@ export class PosService implements IPosService {
         private readonly productRepository: IProductRepository,
         @Inject(SymbolsCatalogs.ICatPaymentMethodRepository)
         private readonly catPaymentMethodRepository: ICatPaymentMethodRepository,
+        @Inject(SymbolsCatalogs.ICatOrderStatusRepository)
+        private readonly catOrderStatusRepository: ICatOrderStatusRepository,
         @Inject(SymbolsUser.IUserRepository)
         private readonly userRepository: IUserRepository,
         @Inject(SymbolsAnalytics.IMetricsRepository)
@@ -67,6 +71,7 @@ export class PosService implements IPosService {
             user: sale.userId ?? null,
             customer,
             soldBy,
+            status: await this.resolveStatus(OrderStatus.PAID),
         });
         orderModel.setPaymentMethod({ _id: paymentMethod._id });
         lines.forEach(({ product, quantity }) =>
@@ -106,15 +111,34 @@ export class PosService implements IPosService {
         }
 
         // The state machine rejects a second refund on its own: REFUNDED is terminal.
-        sale.changeStatus(OrderStatus.REFUNDED);
+        sale.changeStatus(await this.resolveStatus(OrderStatus.REFUNDED));
         await this.stockReservation.restoreOnce(sale);
 
         return this.orderRepository.update(id, sale);
     }
 
     async findAll(options: IOrderFilterOptions): Promise<PaginatedResponse<OrderModel>> {
+        const statusId = options.status ? (await this.resolveStatus(options.status))._id : undefined;
+
         // Forced last so this endpoint can never leak online orders.
-        return this.orderRepository.findAll({ ...options, channel: OrderChannel.POS });
+        return this.orderRepository.findAll({ ...options, statusId, channel: OrderChannel.POS });
+    }
+
+    /**
+     * The catalogue row behind a code. A missing row is a broken installation, not
+     * a bad request: the codes come from the enum the seeder writes.
+     */
+    private async resolveStatus(code: OrderStatus): Promise<IOrderStatusRef> {
+        const status = await this.catOrderStatusRepository.findByCode(code);
+
+        if (!status) {
+            throw new BaseErrorException(
+                `Order status ${code} is missing from the catalogue`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+
+        return status;
     }
 
     /** Sums the quantities of repeated products into a single line. */

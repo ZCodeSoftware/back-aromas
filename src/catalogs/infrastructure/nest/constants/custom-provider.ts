@@ -3,6 +3,7 @@ import { CatBrandService } from '../../../application/services/cat-brand.service
 import { CatCategoryService } from '../../../application/services/cat-category.service';
 import { CatColorService } from '../../../application/services/cat-color.service';
 import { CatEssenceService } from '../../../application/services/cat-essence.service';
+import { CatOrderStatusService } from '../../../application/services/cat-order-status.service';
 import { CatPaymentMethodService } from '../../../application/services/cat-payment-method.service';
 import { CatSubCategoryService } from '../../../application/services/cat-sub-category.service';
 import { CatTypeHousingService } from '../../../application/services/cat-type-housing.service';
@@ -13,6 +14,7 @@ import { CatBrandRepository } from '../../mongo/repositories/cat-brand.repositor
 import { CatCategoryRepository } from '../../mongo/repositories/cat-category.repository';
 import { CatColorRepository } from '../../mongo/repositories/cat-color.repository';
 import { CatEssenceRepository } from '../../mongo/repositories/cat-essence.repository';
+import { CatOrderStatusRepository } from '../../mongo/repositories/cat-order-status.repository';
 import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
 import { CatRoleRepository } from '../../mongo/repositories/cat-role.repository';
 import { CatSubCategoryRepository } from '../../mongo/repositories/cat-sub-cartegory.repository';
@@ -103,4 +105,14 @@ export const catCategoryRepository = {
 export const catCategoryService = {
   provide: SymbolsCatalogs.ICatCategoryService,
   useClass: CatCategoryService
+}
+
+export const catOrderStatusRepository = {
+  provide: SymbolsCatalogs.ICatOrderStatusRepository,
+  useClass: CatOrderStatusRepository
+}
+
+export const catOrderStatusService = {
+  provide: SymbolsCatalogs.ICatOrderStatusService,
+  useClass: CatOrderStatusService
 }

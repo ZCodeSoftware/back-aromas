@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { round2 } from "../../../../core/domain/utils/money.util";
+import { CatOrderStatus } from "../../../../core/infrastructure/mongo/schemas/catalogs/cat-order-status.schema";
 import { Order } from "../../../../core/infrastructure/mongo/schemas/public/order.schema";
+import { OrderStatusCatalog } from "../../../../core/infrastructure/mongo/utils/order-status-catalog";
 import { OrderChannel } from "../../../../order/domain/enum/order-channel.enum";
 import { PURCHASED_STATUSES, REVENUE_STATUSES } from "../../../../order/domain/enum/order-status.enum";
 import { IOrderRepository } from "../../../domain/repositories/order.interface.repository";
@@ -16,24 +18,51 @@ import {
 } from "../../../domain/types/analytics.type";
 import { IResolvedRange } from "../../../domain/utils/date-range.util";
 
-/** Money actually taken, as opposed to every order that was not reversed. */
-const IS_PAID = { $in: ['$status', PURCHASED_STATUSES] };
+/**
+ * Money actually taken, as opposed to every order that was not reversed. Takes
+ * the ids because an order stores the ObjectId of its `cat_order_status` row.
+ */
+const isPaid = (purchasedIds: Types.ObjectId[]) => ({ $in: ['$status', purchasedIds] });
+
+/** Turns the stored status id back into its code, which is what a report shows. */
+const LOOKUP_STATUS_CODE = [
+    {
+        $lookup: {
+            from: 'cat_order_status',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'status',
+            pipeline: [{ $project: { code: 1 } }],
+        },
+    },
+    { $unwind: { path: '$status', preserveNullAndEmptyArrays: true } },
+];
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
+    private readonly statusCatalog: OrderStatusCatalog;
+
     constructor(
-        @InjectModel('Order') private readonly orderDB: Model<Order>
-    ) { }
+        @InjectModel('Order') private readonly orderDB: Model<Order>,
+        @InjectModel('CatOrderStatus') catOrderStatusDB: Model<CatOrderStatus>,
+    ) {
+        this.statusCatalog = new OrderStatusCatalog(catOrderStatusDB);
+    }
 
     async getSalesSummary(topLimit: number, range?: IResolvedRange | null): Promise<ISalesSummary> {
         const window = this.dateFilter(range);
+        const [revenueIds, purchasedIds] = await Promise.all([
+            this.statusCatalog.idsByCodes(REVENUE_STATUSES),
+            this.statusCatalog.idsByCodes(PURCHASED_STATUSES),
+        ]);
+        const IS_PAID = isPaid(purchasedIds);
 
         const [totals, ordersByStatus, topSold] = await Promise.all([
             // Cancelled and refunded orders are excluded: the money is not ours.
             // `$in` on the enumerated complement rather than `$nin`, so the
             // { status, createdAt } index can bound the scan.
             this.orderDB.aggregate([
-                { $match: { status: { $in: REVENUE_STATUSES }, ...window } },
+                { $match: { status: { $in: revenueIds }, ...window } },
                 {
                     $group: {
                         _id: null,
@@ -49,11 +78,13 @@ export class OrderRepository implements IOrderRepository {
             this.orderDB.aggregate([
                 { $match: { ...window } },
                 { $group: { _id: '$status', count: { $sum: 1 } } },
-                { $project: { _id: 0, status: '$_id', count: 1 } },
+                // After the grouping: this is one point lookup per status, not per order.
+                ...LOOKUP_STATUS_CODE,
+                { $project: { _id: 0, status: '$status.code', count: 1 } },
                 { $sort: { status: 1 } },
             ]),
             this.orderDB.aggregate([
-                { $match: { status: { $in: PURCHASED_STATUSES }, ...window } },
+                { $match: { status: { $in: purchasedIds }, ...window } },
                 { $unwind: '$items' },
                 {
                     $group: {
@@ -88,8 +119,14 @@ export class OrderRepository implements IOrderRepository {
     }
 
     async getSalesDaily(range: IResolvedRange): Promise<ISalesDailyRow[]> {
+        const [revenueIds, purchasedIds] = await Promise.all([
+            this.statusCatalog.idsByCodes(REVENUE_STATUSES),
+            this.statusCatalog.idsByCodes(PURCHASED_STATUSES),
+        ]);
+        const IS_PAID = isPaid(purchasedIds);
+
         const rows = await this.orderDB.aggregate([
-            { $match: { status: { $in: REVENUE_STATUSES }, ...this.dateFilter(range) } },
+            { $match: { status: { $in: revenueIds }, ...this.dateFilter(range) } },
             {
                 $group: {
                     // $dateToString with a timezone works from MongoDB 3.6 and takes
@@ -126,8 +163,14 @@ export class OrderRepository implements IOrderRepository {
     }
 
     async getSalesBreakdown(range: IResolvedRange): Promise<IBreakdownRow[]> {
+        const [revenueIds, purchasedIds] = await Promise.all([
+            this.statusCatalog.idsByCodes(REVENUE_STATUSES),
+            this.statusCatalog.idsByCodes(PURCHASED_STATUSES),
+        ]);
+        const IS_PAID = isPaid(purchasedIds);
+
         const rows = await this.orderDB.aggregate([
-            { $match: { status: { $in: REVENUE_STATUSES }, ...this.dateFilter(range) } },
+            { $match: { status: { $in: revenueIds }, ...this.dateFilter(range) } },
             {
                 $group: {
                     // $ifNull belongs here and never in $match: a match on a computed
@@ -159,7 +202,7 @@ export class OrderRepository implements IOrderRepository {
         const rows = await this.orderDB.aggregate([
             {
                 $match: {
-                    status: { $in: REVENUE_STATUSES },
+                    status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
                     ...this.dateFilter(range),
                     // Excludes both an explicit null and a missing field, which is
                     // exactly the counter sales with no account. The complement,
@@ -214,7 +257,12 @@ export class OrderRepository implements IOrderRepository {
         // aggregate here that groups the whole thing.
         const rows = await this.orderDB
             .aggregate([
-                { $match: { status: { $in: REVENUE_STATUSES }, user: { $ne: null } } },
+                {
+                    $match: {
+                        status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
+                        user: { $ne: null },
+                    },
+                },
                 {
                     $group: {
                         _id: '$user',
@@ -257,7 +305,7 @@ export class OrderRepository implements IOrderRepository {
         const rows = await this.orderDB.aggregate([
             {
                 $match: {
-                    status: { $in: REVENUE_STATUSES },
+                    status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
                     ...this.dateFilter(range),
                     // Matches a missing field as well as an explicit null.
                     user: null,
@@ -271,7 +319,7 @@ export class OrderRepository implements IOrderRepository {
 
     async getSoldProductIds(range: IResolvedRange): Promise<string[]> {
         const ids = await this.orderDB.distinct('items.product', {
-            status: { $in: REVENUE_STATUSES },
+            status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
             ...this.dateFilter(range),
         });
 
@@ -280,7 +328,7 @@ export class OrderRepository implements IOrderRepository {
 
     async countOrders(range: IResolvedRange): Promise<number> {
         return this.orderDB.countDocuments({
-            status: { $in: REVENUE_STATUSES },
+            status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
             ...this.dateFilter(range),
         });
     }

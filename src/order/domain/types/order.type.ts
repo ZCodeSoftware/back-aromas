@@ -2,6 +2,16 @@ import { OrderChannel } from "../enum/order-channel.enum";
 import { OrderStatus } from "../enum/order-status.enum";
 import { ShippingType } from "../enum/shipping-type.enum";
 
+/**
+ * A row of the status catalogue as the order flow uses it: the id is what the
+ * document stores, the code is what the state machine reasons about.
+ */
+export interface IOrderStatusRef {
+    _id: string;
+    code: OrderStatus;
+    name: string;
+}
+
 export interface ICreateOrder {
     paymentMethod: string;
     shippingType: ShippingType;
@@ -12,7 +22,10 @@ export interface ICreateOrder {
 export interface IOrderFilterOptions {
     page?: number;
     limit?: number;
+    /** Status code as it arrives from the API; services translate it to `statusId`. */
     status?: OrderStatus;
+    /** Catalogue id the documents are actually matched against. */
+    statusId?: string;
     userId?: string;
     dateFrom?: Date;
     dateTo?: Date;

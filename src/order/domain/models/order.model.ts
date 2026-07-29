@@ -6,6 +6,7 @@ import { Identifier } from '../../../core/domain/value-objects/identifier';
 import { OrderChannel } from '../enum/order-channel.enum';
 import { ALLOWED_TRANSITIONS, OrderStatus } from '../enum/order-status.enum';
 import { ShippingType } from '../enum/shipping-type.enum';
+import { IOrderStatusRef } from '../types/order.type';
 import { OrderItemModel } from './order-item.model';
 
 export class OrderModel extends BaseModel {
@@ -17,7 +18,8 @@ export class OrderModel extends BaseModel {
   private _paymentMethod: any;
   private _shippingType: ShippingType;
   private _shippingAddress?: any;
-  private _status: OrderStatus = OrderStatus.PENDING;
+  /** Row of `cat_order_status`: populated on every read, a bare id right after a write. */
+  private _status: any;
   private _stockRestored = false;
   private _channel: OrderChannel = OrderChannel.ONLINE;
   private _soldBy?: any;
@@ -34,8 +36,15 @@ export class OrderModel extends BaseModel {
     return this._items;
   }
 
+  /** Code of the catalogue row, which is what every business rule is written on. */
   get status(): OrderStatus {
-    return this._status;
+    return this._status?.code ?? this._status;
+  }
+
+  get statusId(): string | null {
+    if (!this._status) return null;
+
+    return String(this._status?._id ?? this._status);
   }
 
   get channel(): OrderChannel {
@@ -73,18 +82,22 @@ export class OrderModel extends BaseModel {
     this._totalPrice = round2(this._subTotalPrice + this._shippingPrice);
   }
 
-  /** Applies a status move, rejecting anything outside ALLOWED_TRANSITIONS. */
-  changeStatus(next: OrderStatus): void {
-    const allowed = ALLOWED_TRANSITIONS[this._status] ?? [];
+  /**
+   * Applies a status move, rejecting anything outside ALLOWED_TRANSITIONS. Takes
+   * the catalogue row, not a bare code, because the document stores its id.
+   */
+  changeStatus(next: IOrderStatusRef): void {
+    const current = this.status;
+    const allowed = ALLOWED_TRANSITIONS[current] ?? [];
 
-    if (!allowed.includes(next)) {
+    if (!allowed.includes(next?.code)) {
       throw new BaseErrorException(
-        `Cannot move an order from ${this._status} to ${next}`,
+        `Cannot move an order from ${current} to ${next?.code}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    this._status = next;
+    this._status = { _id: next._id, code: next.code, name: next.name };
   }
 
   markStockRestored(): void {
@@ -119,7 +132,7 @@ export class OrderModel extends BaseModel {
     newOrder._items = [];
     newOrder._shippingType = order.shippingType;
     newOrder._shippingPrice = round2(order.shippingPrice ?? 0);
-    newOrder._status = OrderStatus.PENDING;
+    newOrder._status = OrderModel.statusOf(order.status, OrderStatus.PENDING);
     newOrder._stockRestored = false;
     newOrder._channel = OrderChannel.ONLINE;
     newOrder.recalculateTotals();
@@ -132,7 +145,8 @@ export class OrderModel extends BaseModel {
    * shipping is meaningless because the buyer walks out with the goods.
    *
    * Kept as its own factory so that "whatever `create()` returns is PENDING"
-   * stays a readable invariant and no online caller can smuggle a status in.
+   * stays a readable invariant, now enforced by statusOf() since the starting
+   * status has to be handed in from the catalogue.
    */
   static createPosSale(sale: any): OrderModel {
     const newOrder = new OrderModel(new Identifier(sale._id));
@@ -143,11 +157,27 @@ export class OrderModel extends BaseModel {
     newOrder._items = [];
     newOrder._shippingType = ShippingType.PICKUP;
     newOrder._shippingPrice = 0;
-    newOrder._status = OrderStatus.PAID;
+    newOrder._status = OrderModel.statusOf(sale.status, OrderStatus.PAID);
     newOrder._stockRestored = false;
     newOrder.recalculateTotals();
 
     return newOrder;
+  }
+
+  /**
+   * A factory promises the status the order is born on, so the caller has to hand
+   * in that exact catalogue row. Anything else is a wiring mistake, not a request
+   * error: the caller reads the row, it never comes from the outside world.
+   */
+  private static statusOf(status: any, expected: OrderStatus): IOrderStatusRef {
+    if (!status?._id || status?.code !== expected) {
+      throw new BaseErrorException(
+        `An order of this kind must start on the ${expected} status of the catalogue`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return { _id: status._id, code: status.code, name: status.name };
   }
 
   static hydrate(order: any): OrderModel {

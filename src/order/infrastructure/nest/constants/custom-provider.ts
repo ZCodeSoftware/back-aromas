@@ -9,6 +9,7 @@ import { StockReservationService } from '../../../application/services/stock-res
 import SymbolsOrder from '../../../symbols-order';
 import { AddressRepository } from '../../mongo/repositories/address.repository';
 import { CartRepository } from '../../mongo/repositories/cart.repository';
+import { CatOrderStatusRepository } from '../../mongo/repositories/cat-order-status.repository';
 import { CatPaymentMethodRepository } from '../../mongo/repositories/cat-payment-method.repository';
 import { MetricsRepository } from '../../mongo/repositories/metrics.repository';
 import { OrderRepository } from '../../mongo/repositories/order.repository';
@@ -52,6 +53,11 @@ export const addressRepository = {
 export const catPaymentMethodRepository = {
   provide: SymbolsCatalogs.ICatPaymentMethodRepository,
   useClass: CatPaymentMethodRepository,
+};
+
+export const catOrderStatusRepository = {
+  provide: SymbolsCatalogs.ICatOrderStatusRepository,
+  useClass: CatOrderStatusRepository,
 };
 
 export const metricsRepository = {
