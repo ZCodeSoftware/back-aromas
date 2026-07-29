@@ -50,15 +50,15 @@ const MS_PER_HOUR = 3_600_000;
 const UNKNOWN_PAYMENT_METHOD = 'UNKNOWN';
 
 const CART_NOTE =
-    'Point in time. There is one cart per registered user, emptied on checkout, so this cannot be scoped to a date range. Guests have no cart and are invisible here.';
+    'Instantánea puntual. Hay un carrito por usuario registrado, que se vacía al finalizar la compra, por lo que no se puede acotar a un rango de fechas. Los invitados no tienen carrito y no aparecen acá.';
 const LIFETIME_NOTE =
-    'Derived from lifetime counters that carry no per-event timestamp, so dateFrom and dateTo do not affect them. The counters are never decremented on cancellation or refund, so soldUnits is an upper bound.';
+    'Se calcula a partir de contadores históricos sin marca de tiempo por evento, por lo que dateFrom y dateTo no los afectan. Los contadores nunca se decrementan ante una cancelación o reembolso, por lo que soldUnits es un límite superior.';
 const ANONYMOUS_NOTE =
-    'Counter sales with no linked account. Excluded from topCustomers and from the cohorts.';
+    'Ventas de mostrador sin una cuenta vinculada. Excluidas de topCustomers y de las cohortes.';
 const COHORT_DEFINITION =
-    "New means the customer's first-ever revenue order falls inside this range.";
+    "Se considera 'nuevo' cuando el primer pedido facturado del cliente cae dentro de este rango.";
 const DEAD_STOCK_DEFINITION =
-    'Active products holding stock that sold no unit inside the selected range.';
+    'Productos activos con stock que no vendieron ninguna unidad dentro del rango seleccionado.';
 
 @Injectable()
 export class AnalyticsService implements IAnalyticsService {

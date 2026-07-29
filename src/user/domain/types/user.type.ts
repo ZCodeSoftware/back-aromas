@@ -11,4 +11,6 @@ export interface IUpdateUser {
     email?: string;
     /** Admin-only lever, not exposed on the self-service route. */
     isActive?: boolean;
+    /** Admin-only, not exposed on the self-service route. Replaces the full role set. */
+    roles?: string[];
 };

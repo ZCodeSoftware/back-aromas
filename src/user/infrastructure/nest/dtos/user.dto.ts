@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../../../../core/domain/utils/regex/regex.util";
 
 export class CreateUserDTO {
@@ -119,4 +119,14 @@ export class AdminUpdateUserDTO extends UpdateUserDTO {
         type: Boolean,
     })
     isActive?: boolean;
+
+    @IsArray()
+    @IsMongoId({ each: true })
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Replaces the full set of role ids assigned to the user',
+        example: ['64f1e2b8a1c4d0012345678'],
+        type: [String],
+    })
+    roles?: string[];
 }

@@ -53,6 +53,14 @@ export class UserService implements IUserService {
 
         const userModel = UserModel.create({ ...user, _id: id });
 
+        if (user.roles) {
+            const roles = await this.catRoleRepository.findByIds(user.roles);
+            if (roles.length !== user.roles.length) {
+                throw new BaseErrorException('One or more roles not found', HttpStatus.NOT_FOUND);
+            }
+            userModel.setRoles(roles);
+        }
+
         return this.userRepository.update(userModel);
     }
 
