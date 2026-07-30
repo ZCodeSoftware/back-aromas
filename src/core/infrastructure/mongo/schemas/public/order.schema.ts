@@ -82,6 +82,14 @@ export const OrderCustomerSchema = SchemaFactory.createForClass(OrderCustomer);
 
 @Schema({ collection: 'order', timestamps: true })
 export class Order {
+    /**
+     * Human-facing consecutive number, handed out by the `order` sequence in the
+     * counter collection. Sparse so the unique index tolerates documents written
+     * before this field existed, until the backfill migration reaches them.
+     */
+    @Prop({ required: true, name: 'orderNumber', type: Number, unique: true, sparse: true })
+    orderNumber: number;
+
     /** Optional: a point-of-sale walk-in has no account behind it. */
     @Prop({ required: false, name: 'user', type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
     user?: User;

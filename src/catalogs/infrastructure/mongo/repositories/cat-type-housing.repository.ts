@@ -30,8 +30,8 @@ export class CatTypeHousingRepository implements ICatTypeHousingRepository {
         return CatTypeHousingModel.hydrate(typeHousing);
     }
 
-    async findAll(): Promise<CatTypeHousingModel[]> {
-        const typeHousing = await this.catTypeHousingDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatTypeHousingModel[]> {
+        const typeHousing = await this.catTypeHousingDB.find(includeInactive ? {} : { isActive: true });
 
         return typeHousing.map((typeHousing) => CatTypeHousingModel.hydrate(typeHousing));
     }

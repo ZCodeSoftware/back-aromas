@@ -26,8 +26,8 @@ export class CatRoleService implements ICatRoleService {
         return this.catRoleRepository.findById(id);
     }
 
-    async findAll(): Promise<CatRoleModel[]> {
-        return this.catRoleRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatRoleModel[]> {
+        return this.catRoleRepository.findAll(includeInactive);
     }
 
     async update(id: string, role: IUpdateRole): Promise<CatRoleModel> {

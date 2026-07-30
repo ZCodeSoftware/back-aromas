@@ -29,8 +29,8 @@ export class CatAssociatedEmotionRepository implements ICatAssociatedEmotionRepo
         return CatAssociatedEmotionModel.hydrate(associatedEmotion);
     }
 
-    async findAll(): Promise<CatAssociatedEmotionModel[]> {
-        const associatedEmotion = await this.catAssociatedEmotionDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatAssociatedEmotionModel[]> {
+        const associatedEmotion = await this.catAssociatedEmotionDB.find(includeInactive ? {} : { isActive: true });
 
         return associatedEmotion.map((associatedEmotion) => CatAssociatedEmotionModel.hydrate(associatedEmotion))
     }

@@ -1,11 +1,11 @@
 import { PaginatedResponse } from "../../../core/domain/response/find-all-paginated.response";
-import { FilterOptionsDTO } from "../../infrastructure/nest/dtos/filter.dto";
 import { ProductModel } from "../models/product.model";
+import { FilterOptions } from "../types/filter.type";
 
 export interface IProductRepository {
     create(product: ProductModel): Promise<ProductModel>;
     findById(id: string): Promise<ProductModel>;
-    findAll(options: FilterOptionsDTO): Promise<PaginatedResponse<ProductModel>>
+    findAll(options: FilterOptions): Promise<PaginatedResponse<ProductModel>>
     update(id: string, product: ProductModel): Promise<ProductModel>;
     /** Soft delete: flips isActive to false, the row is kept. */
     softDelete(id: string): Promise<ProductModel>;

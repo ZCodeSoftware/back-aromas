@@ -21,8 +21,8 @@ export class CatAssociatedEmotionService implements ICatAssociatedEmotionService
         return await this.catAssociatedEmotionRepository.create(catAssociatedEmotionModel);
     }
 
-    async findAll(): Promise<CatAssociatedEmotionModel[]> {
-        return await this.catAssociatedEmotionRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatAssociatedEmotionModel[]> {
+        return await this.catAssociatedEmotionRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatAssociatedEmotionModel> {

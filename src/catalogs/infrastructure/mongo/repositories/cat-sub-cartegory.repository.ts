@@ -27,8 +27,8 @@ export class CatSubCategoryRepository implements ICatSubCategoryRepository {
         return CatSubCategoryModel.hydrate(subCategory);
     }
 
-    async findAll( ): Promise<CatSubCategoryModel[]> {
-        const subCategories = await this.catSubCategoryDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatSubCategoryModel[]> {
+        const subCategories = await this.catSubCategoryDB.find(includeInactive ? {} : { isActive: true });
 
         return subCategories.map((subCat)=> CatSubCategoryModel.hydrate(subCat));
     }

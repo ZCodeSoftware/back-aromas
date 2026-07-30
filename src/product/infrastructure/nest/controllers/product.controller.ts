@@ -37,6 +37,20 @@ export class ProductController {
         return this.productService.findAll(options);
     }
 
+    // Declared before `:id` so the literal route wins the match. Same filters as the
+    // public listing, except the soft-deleted products come back too so the dashboard
+    // can reactivate them.
+    @Get('all')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @ApiResponse({ status: 200, description: 'Return all Products, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive(@Query() options: FilterOptionsDTO) {
+        return this.productService.findAll({ ...options, includeInactive: true });
+    }
+
     @Get(':id')
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Return Product by id' })

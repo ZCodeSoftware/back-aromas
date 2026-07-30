@@ -27,8 +27,8 @@ export class CatRoleRepository implements ICatRoleRepository {
         return CatRoleModel.hydrate(role);
     }
 
-    async findAll(): Promise<CatRoleModel[]> {
-        const roles = await this.catRoleDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatRoleModel[]> {
+        const roles = await this.catRoleDB.find(includeInactive ? {} : { isActive: true });
         return roles?.map(role => CatRoleModel.hydrate(role));
     }
 

@@ -10,7 +10,17 @@ import { OrderModel } from "../../../domain/models/order.model";
 import { ICatOrderStatusRepository } from "../../../domain/repositories/cat-order-status.interface.repository";
 import { IOrderRepository } from "../../../domain/repositories/order.interface.repository";
 import { IOrderFilterOptions } from "../../../domain/types/order.type";
+import { CounterSchema } from "../schemas/counter.schema";
 import { OrderSchema } from "../schemas/order.schema";
+
+/** Sequence that hands out the number the customer sees on an order. */
+const ORDER_NUMBER_SEQUENCE = 'order';
+
+/**
+ * First number of a fresh install. Starting above zero so the earliest customers
+ * are not shown that theirs is the first order the shop ever took.
+ */
+const ORDER_NUMBER_START = 1000;
 
 /**
  * `status` is populated everywhere on purpose: the state machine reads the code
@@ -21,18 +31,25 @@ const ORDER_POPULATE = [
     { path: 'paymentMethod', select: 'name _id' },
     { path: 'items.product', select: 'name images _id' },
     { path: 'soldBy', select: 'firstName lastName _id' },
+    // The buyer behind an online order: without this the listings can only show a
+    // raw id, since those orders carry no `customer` snapshot of their own.
+    { path: 'user', select: 'firstName lastName email _id' },
 ];
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
     constructor(
         @InjectModel('Order') private readonly orderDB: Model<OrderSchema>,
+        @InjectModel('Counter') private readonly counterDB: Model<CounterSchema>,
         @Inject(SymbolsCatalogs.ICatOrderStatusRepository)
         private readonly catOrderStatusRepository: ICatOrderStatusRepository,
     ) { }
 
     async create(order: OrderModel): Promise<OrderModel> {
-        const schema = new this.orderDB(order.toJSON());
+        const schema = new this.orderDB({
+            ...order.toJSON(),
+            orderNumber: await this.nextOrderNumber(),
+        });
         const newOrder = await schema.save();
 
         if (!newOrder) throw new BaseErrorException(`Order shouldn't be created`, HttpStatus.BAD_REQUEST);
@@ -121,5 +138,28 @@ export class OrderRepository implements IOrderRepository {
         });
 
         return count > 0;
+    }
+
+    /**
+     * Reserves the next number of the sequence. The floor is applied inside the
+     * same update that increments, as an aggregation pipeline, so a fresh install
+     * starts at ORDER_NUMBER_START without a read-then-write window where two
+     * concurrent checkouts could be handed the same number.
+     */
+    private async nextOrderNumber(): Promise<number> {
+        const counter = await this.counterDB.findOneAndUpdate(
+            { _id: ORDER_NUMBER_SEQUENCE },
+            [{ $set: { seq: { $add: [{ $ifNull: ['$seq', ORDER_NUMBER_START - 1] }, 1] } } }],
+            { upsert: true, returnDocument: 'after' },
+        );
+
+        if (!counter?.seq) {
+            throw new BaseErrorException(
+                'The order number sequence could not be advanced',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+
+        return counter.seq;
     }
 }

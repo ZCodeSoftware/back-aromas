@@ -20,8 +20,8 @@ export class CatPaymentMethodService implements ICatPaymentMethodService {
         return await this.catPaymentMethodRepository.create(catPaymentMethodModel);
     }
 
-    async findAll(): Promise<CatPaymentMethodModel[]> {
-        return await this.catPaymentMethodRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatPaymentMethodModel[]> {
+        return await this.catPaymentMethodRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatPaymentMethodModel> {

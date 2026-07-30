@@ -4,7 +4,7 @@ import { CatPaymentMethodModel } from "../models/cat-payment-method.model";
 export interface ICatPaymentMethodRepository {
     create(PaymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel>;
     findById(id: string): Promise<CatPaymentMethodModel | null>;
-    findAll(): Promise<CatPaymentMethodModel[]>
+    findAll(includeInactive?: boolean): Promise<CatPaymentMethodModel[]>
     update(id: string, paymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel>;
     softDelete(id: string): Promise<CatPaymentMethodModel>;
 }

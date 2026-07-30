@@ -43,6 +43,19 @@ export class CatRoleController {
         return this.catRoleService.findAll();
     }
 
+    // Declared before `:id` so the literal route wins the match. Lists the
+    // deactivated roles too, so the dashboard can restore them.
+    @Get('all')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Return all Roles, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive() {
+        return this.catRoleService.findAll(true);
+    }
+
     @Get(':id')
     @UseGuards(AuthGuards, RoleGuards)
     @Roles(TypeRoles.ADMIN)

@@ -37,6 +37,20 @@ export class CatSubCategoryController {
         return this.catSubCategoryService.findAll();
     }
 
+    // Declared before `:id` so the literal route wins the match. Admin-only: the
+    // storefront keeps seeing active rows only, the dashboard needs the deactivated
+    // ones listed to be able to restore them.
+    @Get('all')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Return all Sub Categories, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive() {
+        return this.catSubCategoryService.findAll(true);
+    }
+
     @Get(':id')
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Return category by id' })

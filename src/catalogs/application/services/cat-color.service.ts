@@ -20,8 +20,8 @@ export class CatColorService implements ICatColorService {
         return await this.catColorRepository.create(catColorModel);
     }
 
-    async findAll(): Promise<CatColorModel[]> {
-        return await this.catColorRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatColorModel[]> {
+        return await this.catColorRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatColorModel> {
