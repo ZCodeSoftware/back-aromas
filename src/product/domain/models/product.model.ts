@@ -20,6 +20,8 @@ export class ProductModel extends BaseModel {
   private _brand?: CatBrandModel;
   private _category: CatCategoryModel
   private _subCategory?: CatSubCategoryModel;
+  private _ratingAvg: number;
+  private _reviewsCount: number;
 
   addColor(color: CatColorModel): void {
     this._color = color;
@@ -59,8 +61,10 @@ export class ProductModel extends BaseModel {
       essence: this._essence ? this._essence.toJSON() : null,
       associatedEmotion: this._associatedEmotion ? this._associatedEmotion.toJSON() : null,
       brand: this._brand ? this._brand.toJSON() : null,
-      category: this._category.toJSON(),
+      category: this._category ? this._category.toJSON() : null,
       subCategory: this._subCategory ? this._subCategory.toJSON() : null,
+      ratingAvg: this._ratingAvg,
+      reviewsCount: this._reviewsCount,
     };
   }
 
@@ -72,6 +76,10 @@ export class ProductModel extends BaseModel {
     newProduct._images = product.images ?? [];
     newProduct._stock = product.stock;
     newProduct._isActive = product.isActive ?? true;
+    // Carried over so an update built from `{...existing.toJSON(), ...changes}`
+    // does not wipe the rating denormalised from the review collection.
+    newProduct._ratingAvg = product.ratingAvg ?? 0;
+    newProduct._reviewsCount = product.reviewsCount ?? 0;
 
     return newProduct;
   }
@@ -88,8 +96,10 @@ export class ProductModel extends BaseModel {
     newProduct._essence = product.essence ? CatEssenceModel.hydrate(product.essence) : null;
     newProduct._associatedEmotion = product.associatedEmotion ? CatAssociatedEmotionModel.hydrate(product.associatedEmotion) : null;
     newProduct._brand = product.brand ? CatBrandModel.hydrate(product.brand) : null;
-    newProduct._category = CatCategoryModel.hydrate(product.category);
+    newProduct._category = product.category ? CatCategoryModel.hydrate(product.category) : null;
     newProduct._subCategory = product.subCategory ? CatSubCategoryModel.hydrate(product.subCategory) : null;
+    newProduct._ratingAvg = product.ratingAvg ?? 0;
+    newProduct._reviewsCount = product.reviewsCount ?? 0;
 
     return newProduct;
   }

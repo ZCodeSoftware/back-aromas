@@ -11,6 +11,9 @@ export class CatColor {
 
     @Prop()
     hex: string;
+
+    @Prop({ required: false, type: Boolean, default: true })
+    isActive: boolean;
 }
 
 export const CatColorSchema = SchemaFactory.createForClass(CatColor);

@@ -23,16 +23,37 @@ export class CatTypeHousingRepository implements ICatTypeHousingRepository {
     }
 
     async findById(id: string) {
-        const typeHousing = await this.catTypeHousingDB.findById(id);
+        const typeHousing = await this.catTypeHousingDB.findOne({ _id: id, isActive: true });
 
         if (!typeHousing) return null
 
         return CatTypeHousingModel.hydrate(typeHousing);
     }
 
-    async findAll(): Promise<CatTypeHousingModel[]> {
-        const typeHousing = await this.catTypeHousingDB.find();
+    async findAll(includeInactive = false): Promise<CatTypeHousingModel[]> {
+        const typeHousing = await this.catTypeHousingDB.find(includeInactive ? {} : { isActive: true });
 
         return typeHousing.map((typeHousing) => CatTypeHousingModel.hydrate(typeHousing));
+    }
+
+    async update(id: string, typeHousing: CatTypeHousingModel): Promise<CatTypeHousingModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(typeHousing.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const typeHousingToUpdate = await this.catTypeHousingDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!typeHousingToUpdate) throw new BaseErrorException(`Type Housing not found`, HttpStatus.NOT_FOUND)
+
+        return CatTypeHousingModel.hydrate(typeHousingToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatTypeHousingModel> {
+        const typeHousing = await this.catTypeHousingDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!typeHousing) throw new BaseErrorException(`Type Housing not found`, HttpStatus.NOT_FOUND)
+
+        return CatTypeHousingModel.hydrate(typeHousing);
     }
 }

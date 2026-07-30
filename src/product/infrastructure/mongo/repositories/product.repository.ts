@@ -8,7 +8,7 @@ import { SortByFields } from "../../../domain/enum/sort-by-fields.enum";
 import { SortOrder } from "../../../domain/enum/sort-order.enum";
 import { ProductModel } from "../../../domain/models/product.model";
 import { IProductRepository } from "../../../domain/repositories/product.interface.repository";
-import { FilterOptionsDTO } from "../../nest/dtos/filter.dto";
+import { FilterOptions } from "../../../domain/types/filter.type";
 import { ProductSchema } from "../schemas/product.schema";
 
 @Injectable()
@@ -34,13 +34,14 @@ export class ProductRepository implements IProductRepository {
         return ProductModel.hydrate(product);
     }
 
-    async findAll(options: FilterOptionsDTO = {}): Promise<PaginatedResponse<ProductModel>> {
+    async findAll(options: FilterOptions = {}): Promise<PaginatedResponse<ProductModel>> {
         const {
             page = 1,
             limit = 10,
             sortBy = SortByFields.CREATED_AT,
             sortOrder = SortOrder.DESC,
             isActive,
+            includeInactive,
             search,
             priceMin,
             priceMax,
@@ -61,8 +62,13 @@ export class ProductRepository implements IProductRepository {
 
         const filters: any = {};
 
+        // Soft-deleted products stay out of the listing unless explicitly asked for:
+        // either filtered on their own (isActive) or listed next to the active ones
+        // (includeInactive, the admin listing).
         if (isActive !== undefined) {
-            filters.is_active = isActive;
+            filters.isActive = isActive;
+        } else if (!includeInactive) {
+            filters.isActive = true;
         }
 
         if (search) {
@@ -145,5 +151,16 @@ export class ProductRepository implements IProductRepository {
         if (!productToUpdate) throw new BaseErrorException(`Product shouldn't be updated`, HttpStatus.BAD_REQUEST);
 
         return ProductModel.hydrate(productToUpdate);
+    }
+
+    async softDelete(id: string): Promise<ProductModel> {
+        const product = await this.productDB
+            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .populate('associatedEmotion essence brand color subCategory')
+            .populate({ path: 'category', select: 'name _id' });
+
+        if (!product) throw new BaseErrorException('Product not found', HttpStatus.NOT_FOUND);
+
+        return ProductModel.hydrate(product);
     }
 }

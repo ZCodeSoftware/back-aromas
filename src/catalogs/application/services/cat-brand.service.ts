@@ -2,7 +2,7 @@ import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ICatBrandService } from "../../domain/services/cat-brand.service";
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatBrandRepository } from "../../domain/repositories/cat-brand.repository";
-import { ICreateBrand } from "../../domain/types/cat-brand.type";
+import { ICreateBrand, IUpdateBrand } from "../../domain/types/cat-brand.type";
 import { CatBrandModel } from "../../domain/models/cat-brand.model";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
@@ -21,8 +21,8 @@ export class CatBrandService implements ICatBrandService {
         return await this.catBrandRepository.create(catBrandModel);
     }
 
-    async findAll(): Promise<CatBrandModel[]> {
-        return await this.catBrandRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatBrandModel[]> {
+        return await this.catBrandRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatBrandModel> {
@@ -33,5 +33,14 @@ export class CatBrandService implements ICatBrandService {
         }
 
         return brand
+    }
+
+    async update(id: string, brand: IUpdateBrand): Promise<CatBrandModel> {
+        const catBrandModel = CatBrandModel.create(brand)
+        return await this.catBrandRepository.update(id, catBrandModel)
+    }
+
+    async delete(id: string): Promise<CatBrandModel> {
+        return await this.catBrandRepository.softDelete(id)
     }
 }

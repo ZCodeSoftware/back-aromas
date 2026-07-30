@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { CatRoleModel } from "../../../domain/models/cat-role.model";
+import { CatRoleModel } from "../../../../core/domain/models/cat-role.model";
 import { ICatRoleRepository } from "../../../domain/repositories/cat-role.interface.repository";
 import { CatRoleSchema } from "../schemas/cat-role.schema";
 
@@ -15,5 +15,10 @@ export class CatRoleRepository implements ICatRoleRepository {
         const role = await this.catRoleDB.findOne({ name });
         if (!role) return null;
         return CatRoleModel.hydrate(role);
+    }
+
+    async findByIds(ids: string[]): Promise<CatRoleModel[]> {
+        const roles = await this.catRoleDB.find({ _id: { $in: ids } });
+        return roles.map(role => CatRoleModel.hydrate(role));
     }
 }

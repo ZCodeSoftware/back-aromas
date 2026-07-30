@@ -3,7 +3,7 @@ import { ICatSubCategoryService } from "../../domain/services/cat-sub-category.s
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatSubCategoryRepository } from "../../domain/repositories/cat-sub-cartegory.repository";
 import { CatSubCategoryModel } from "../../domain/models/cat-sub-cartegory.model";
-import { ICreateSubCategory } from "../../domain/types/cat-sub-category.type";
+import { ICreateSubCategory, IUpdateSubCategory } from "../../domain/types/cat-sub-category.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
 
@@ -29,7 +29,16 @@ export class CatSubCategoryService implements ICatSubCategoryService {
         return subCategory;
     }
 
-    async findAll(): Promise<CatSubCategoryModel[]> {
-        return await this.catSubCategoryRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatSubCategoryModel[]> {
+        return await this.catSubCategoryRepository.findAll(includeInactive);
+    }
+
+    async update(id: string, subCategory: IUpdateSubCategory): Promise<CatSubCategoryModel> {
+        const catSubCatModel = CatSubCategoryModel.create(subCategory);
+        return await this.catSubCategoryRepository.update(id, catSubCatModel);
+    }
+
+    async delete(id: string): Promise<CatSubCategoryModel> {
+        return await this.catSubCategoryRepository.softDelete(id);
     }
 }

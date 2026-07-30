@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { IProductService } from "../../../domain/services/product.interface.service";
 import SymbolsProduct from "../../../symbols-product";
 import { FilterOptionsDTO } from "../dtos/filter.dto";
@@ -17,7 +19,8 @@ export class ProductController {
 
     @Post()
     @HttpCode(201)
-    /* @UseGuards(AuthGuards, RoleGuards) */
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 201, description: 'Product created' })
     @ApiResponse({ status: 400, description: `Product shouldn't be created` })
@@ -34,6 +37,20 @@ export class ProductController {
         return this.productService.findAll(options);
     }
 
+    // Declared before `:id` so the literal route wins the match. Same filters as the
+    // public listing, except the soft-deleted products come back too so the dashboard
+    // can reactivate them.
+    @Get('all')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @ApiResponse({ status: 200, description: 'Return all Products, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive(@Query() options: FilterOptionsDTO) {
+        return this.productService.findAll({ ...options, includeInactive: true });
+    }
+
     @Get(':id')
     @HttpCode(200)
     @ApiResponse({ status: 200, description: 'Return Product by id' })
@@ -45,11 +62,23 @@ export class ProductController {
     @Put(':id')
     @HttpCode(200)
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 200, description: 'Product updated' })
     @ApiResponse({ status: 404, description: 'Product not found' })
     @ApiBody({ type: UpdateProductDTO, description: 'Data to update a Product' })
     async update(@Param('id') id: string, @Body() body: UpdateProductDTO) {
         return this.productService.update(id, body);
+    }
+
+    @Delete(':id')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 200, description: 'Product deactivated (soft delete)' })
+    @ApiResponse({ status: 404, description: 'Product not found' })
+    async delete(@Param('id') id: string) {
+        return this.productService.delete(id);
     }
 }

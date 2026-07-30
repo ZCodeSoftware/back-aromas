@@ -3,7 +3,7 @@ import { ICatCategoryService } from "../../domain/services/cat-category.service"
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatCategoryRepository } from "../../domain/repositories/cat-categories.repository";
 import { CatCategoryModel } from "../../domain/models/cat-category.model";
-import { ICreateCategory } from "../../domain/types/cat-category.type";
+import { ICreateCategory, IUpdateCategory } from "../../domain/types/cat-category.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 import { ICatSubCategoryRepository } from "../../domain/repositories/cat-sub-cartegory.repository";
 
@@ -37,8 +37,8 @@ export class CatCategoryService implements ICatCategoryService {
         return await this.catCategoryRepository.create(catCategoryModel);
     }
 
-    async findAll(): Promise<CatCategoryModel[]> {
-        return await this.catCategoryRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatCategoryModel[]> {
+        return await this.catCategoryRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatCategoryModel | null> {
@@ -51,7 +51,7 @@ export class CatCategoryService implements ICatCategoryService {
         return categories
     }
 
-    async update(id: string, updateCategory: Partial<ICreateCategory>): Promise<CatCategoryModel> {
+    async update(id: string, updateCategory: IUpdateCategory): Promise<CatCategoryModel> {
         const { subCategories, ...rest } = updateCategory
 
 
@@ -74,6 +74,10 @@ export class CatCategoryService implements ICatCategoryService {
 
 
         return categoryToUpdate
+    }
+
+    async delete(id: string): Promise<CatCategoryModel> {
+        return await this.catCategoryRepository.softDelete(id);
     }
 
 }

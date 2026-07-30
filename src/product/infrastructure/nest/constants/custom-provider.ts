@@ -1,6 +1,8 @@
+import SymbolsAnalytics from '../../../../analytics/symbols-analytics';
 import SymbolsCatalogs from '../../../../catalogs/symbols-catalogs';
 import { ProductService } from '../../../application/services/product.service';
 import SymbolsProduct from '../../../symbols-product';
+import { MetricsRepository } from '../../mongo/repositories/metrics.repository';
 import { CatAssociatedEmotionRepository } from '../../mongo/repositories/cat-associated-emotion.repository';
 import { CatBrandRepository } from '../../mongo/repositories/cat-brand.repository';
 import { CatCategoryRepository } from '../../mongo/repositories/cat-category.repository';
@@ -47,4 +49,9 @@ export const catCategoryRepository = {
 export const catSubCategoryRepository = {
   provide: SymbolsCatalogs.ICatSubCategoryRepository,
   useClass: CatSubCategoryRepository,
+}
+
+export const metricsRepository = {
+  provide: SymbolsAnalytics.IMetricsRepository,
+  useClass: MetricsRepository,
 }

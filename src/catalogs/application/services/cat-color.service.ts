@@ -3,7 +3,7 @@ import { ICatColorService } from "../../domain/services/cat-color.interface.serv
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatColorRepository } from "../../domain/repositories/cat-color.interface.repository";
 import { CatColorModel } from "../../domain/models/cat-color.model";
-import { ICreateColor } from "../../domain/types/cat-color.type";
+import { ICreateColor, IUpdateColor } from "../../domain/types/cat-color.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
 @Injectable()
@@ -20,8 +20,8 @@ export class CatColorService implements ICatColorService {
         return await this.catColorRepository.create(catColorModel);
     }
 
-    async findAll(): Promise<CatColorModel[]> {
-        return await this.catColorRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatColorModel[]> {
+        return await this.catColorRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatColorModel> {
@@ -32,6 +32,15 @@ export class CatColorService implements ICatColorService {
         }
 
         return color
+    }
+
+    async update(id: string, color: IUpdateColor): Promise<CatColorModel> {
+        const catColorModel = CatColorModel.create(color);
+        return await this.catColorRepository.update(id, catColorModel);
+    }
+
+    async delete(id: string): Promise<CatColorModel> {
+        return await this.catColorRepository.softDelete(id);
     }
 
 }

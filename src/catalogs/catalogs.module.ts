@@ -11,6 +11,8 @@ import {
   catColorService,
   catEssenceRepository,
   catEssenceService,
+  catOrderStatusRepository,
+  catOrderStatusService,
   catPaymentMethodRepository,
   catPaymentMethodService,
   catRoleRepository,
@@ -26,6 +28,7 @@ import {
   catCategorySchema,
   catColorSchema,
   catEssenceSchema,
+  catOrderStatusSchema,
   catPaymentMethodSchema,
   catRoleSchema,
   catSubCategorySchema,
@@ -40,6 +43,8 @@ import { CatTypeHousingController } from './infrastructure/nest/controllers/cat-
 import { CatEssenceController } from './infrastructure/nest/controllers/cat-essence.controller';
 import { CatBrandController } from './infrastructure/nest/controllers/cat-brand.controller';
 import { CatCategoryContorller } from './infrastructure/nest/controllers/cat-category.controller';
+import { CatOrderStatusController } from './infrastructure/nest/controllers/cat-order-status.controller';
+import { CatOrderStatusSeeder } from './infrastructure/nest/seeders/cat-order-status.seeder';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -51,7 +56,8 @@ import { CatCategoryContorller } from './infrastructure/nest/controllers/cat-cat
     catPaymentMethodSchema,
     catBrandSchema,
     catEssenceSchema,
-    catCategorySchema
+    catCategorySchema,
+    catOrderStatusSchema
   ])],
   controllers: [
     CatRoleController,
@@ -63,6 +69,7 @@ import { CatCategoryContorller } from './infrastructure/nest/controllers/cat-cat
     CatBrandController,
     CatEssenceController,
     CatCategoryContorller,
+    CatOrderStatusController,
   ],
   providers: [
     catRoleRepository,
@@ -82,7 +89,10 @@ import { CatCategoryContorller } from './infrastructure/nest/controllers/cat-cat
     catEssenceRepository,
     catEssenceService,
     catCategoryRepository,
-    catCategoryService
+    catCategoryService,
+    catOrderStatusRepository,
+    catOrderStatusService,
+    CatOrderStatusSeeder
   ],
   exports: []
 })

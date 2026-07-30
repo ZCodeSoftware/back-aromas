@@ -1,0 +1,42 @@
+import { CatOrderStatus, CatOrderStatusSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-order-status.schema';
+import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
+import { Cart, CartSchema } from '../../../../core/infrastructure/mongo/schemas/public/cart.schema';
+import { Metrics, MetricsSchema } from '../../../../core/infrastructure/mongo/schemas/public/metrics.schema';
+import { Order, OrderSchema } from '../../../../core/infrastructure/mongo/schemas/public/order.schema';
+import { Product, ProductSchema } from '../../../../core/infrastructure/mongo/schemas/public/product.schema';
+import { User, UserSchema } from '../../../../core/infrastructure/mongo/schemas/public/user.schema';
+
+export const metricsSchema = {
+  name: Metrics.name,
+  schema: MetricsSchema,
+};
+
+export const orderSchema = {
+  name: Order.name,
+  schema: OrderSchema,
+};
+
+export const productSchema = {
+  name: Product.name,
+  schema: ProductSchema,
+};
+
+export const userSchema = {
+  name: User.name,
+  schema: UserSchema,
+};
+
+export const cartSchema = {
+  name: Cart.name,
+  schema: CartSchema,
+};
+
+export const catPaymentMethodSchema = {
+  name: CatPaymentMethod.name,
+  schema: CatPaymentMethodSchema,
+};
+
+export const catOrderStatusSchema = {
+  name: CatOrderStatus.name,
+  schema: CatOrderStatusSchema,
+};

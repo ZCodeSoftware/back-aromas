@@ -23,15 +23,36 @@ export class CatAssociatedEmotionRepository implements ICatAssociatedEmotionRepo
     }
 
     async findById(id: string): Promise<CatAssociatedEmotionModel | null> {
-        const associatedEmotion = await this.catAssociatedEmotionDB.findById(id);
+        const associatedEmotion = await this.catAssociatedEmotionDB.findOne({ _id: id, isActive: true });
         if (!associatedEmotion) return null;
 
         return CatAssociatedEmotionModel.hydrate(associatedEmotion);
     }
 
-    async findAll(): Promise<CatAssociatedEmotionModel[]> {
-        const associatedEmotion = await this.catAssociatedEmotionDB.find();
+    async findAll(includeInactive = false): Promise<CatAssociatedEmotionModel[]> {
+        const associatedEmotion = await this.catAssociatedEmotionDB.find(includeInactive ? {} : { isActive: true });
 
         return associatedEmotion.map((associatedEmotion) => CatAssociatedEmotionModel.hydrate(associatedEmotion))
+    }
+
+    async update(id: string, associatedEmotion: CatAssociatedEmotionModel): Promise<CatAssociatedEmotionModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(associatedEmotion.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const associatedEmotionToUpdate = await this.catAssociatedEmotionDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!associatedEmotionToUpdate) throw new BaseErrorException(`Associated Emotion not found`, HttpStatus.NOT_FOUND)
+
+        return CatAssociatedEmotionModel.hydrate(associatedEmotionToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatAssociatedEmotionModel> {
+        const associatedEmotion = await this.catAssociatedEmotionDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!associatedEmotion) throw new BaseErrorException(`Associated Emotion not found`, HttpStatus.NOT_FOUND)
+
+        return CatAssociatedEmotionModel.hydrate(associatedEmotion);
     }
 }

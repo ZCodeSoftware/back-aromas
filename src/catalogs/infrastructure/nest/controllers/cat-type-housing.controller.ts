@@ -1,10 +1,12 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 import SymbolsCatalogs from "../../../symbols-catalogs";
 import { ICatTypeHousingService } from "../../../domain/services/cat-type-housing.service";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
-import { CreateTypeHousingDTO } from "../dtos/cat-type-housing.dto";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
+import { CreateTypeHousingDTO, UpdateTypeHousingDTO } from "../dtos/cat-type-housing.dto";
 
 
 
@@ -17,6 +19,7 @@ export class CatTypeHousingController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -52,6 +55,20 @@ export class CatTypeHousingController {
         return this.catTypeHousingService.findAll();
     }
 
+    // Declared before `:id` so the literal route wins the match. Admin-only: the
+    // storefront keeps seeing active rows only, the dashboard needs the deactivated
+    // ones listed to be able to restore them.
+    @Get('all')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Return all Type Housings, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive() {
+        return this.catTypeHousingService.findAll(true);
+    }
+
     @Get(':id')
     @HttpCode(200)
     @ApiResponse(
@@ -68,6 +85,47 @@ export class CatTypeHousingController {
     )
     async findById(@Param('id') id: string) {
         return this.catTypeHousingService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Type Housing updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Type Housing by id Not Found'
+        }
+    )
+    @ApiBody({ type: UpdateTypeHousingDTO, description: 'Data to update a Type Housing' })
+    async update(@Param('id') id: string, @Body() body: UpdateTypeHousingDTO) {
+        return this.catTypeHousingService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Type Housing deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Type Housing by id Not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catTypeHousingService.delete(id);
     }
 
 }

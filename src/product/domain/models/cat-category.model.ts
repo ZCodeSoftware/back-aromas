@@ -38,7 +38,7 @@ export class CatCategoryModel extends BaseModel {
         const newCategory = new CatCategoryModel(new Identifier(category._id));
         newCategory._name = category.name;
         newCategory._subCategories = category.subCategories?.map((s: CatSubCategoryModel) => {
-            return CatCategoryModel.hydrate(s)
+            return CatSubCategoryModel.hydrate(s)
         })
         return newCategory
     }

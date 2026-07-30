@@ -3,7 +3,7 @@ import { BaseErrorException } from "../../../core/domain/exceptions/base.error.e
 import { CatPaymentMethodModel } from "../../domain/models/cat-payment-method.model";
 import { ICatPaymentMethodRepository } from "../../domain/repositories/cat-payment-method.repository";
 import { ICatPaymentMethodService } from "../../domain/services/cat-payment-method.service";
-import { ICreatePaymentMethod } from "../../domain/types/cat-payment-method.type";
+import { ICreatePaymentMethod, IUpdatePaymentMethod } from "../../domain/types/cat-payment-method.type";
 import SymbolsCatalogs from "../../symbols-catalogs";
 
 
@@ -20,8 +20,8 @@ export class CatPaymentMethodService implements ICatPaymentMethodService {
         return await this.catPaymentMethodRepository.create(catPaymentMethodModel);
     }
 
-    async findAll(): Promise<CatPaymentMethodModel[]> {
-        return await this.catPaymentMethodRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatPaymentMethodModel[]> {
+        return await this.catPaymentMethodRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatPaymentMethodModel> {
@@ -30,5 +30,14 @@ export class CatPaymentMethodService implements ICatPaymentMethodService {
         if (!paymentMethod) throw new BaseErrorException('Payment Method not found', HttpStatus.BAD_REQUEST)
 
         return paymentMethod
+    }
+
+    async update(id: string, paymentMethod: IUpdatePaymentMethod): Promise<CatPaymentMethodModel> {
+        const catPaymentMethodModel = CatPaymentMethodModel.create(paymentMethod);
+        return await this.catPaymentMethodRepository.update(id, catPaymentMethodModel);
+    }
+
+    async delete(id: string): Promise<CatPaymentMethodModel> {
+        return await this.catPaymentMethodRepository.softDelete(id);
     }
 }

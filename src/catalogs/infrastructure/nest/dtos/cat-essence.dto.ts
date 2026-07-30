@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 
 export class CreateEssenceDTO {
@@ -14,4 +14,24 @@ export class CreateEssenceDTO {
         }
     )
     name: string;
+}
+
+export class UpdateEssenceDTO {
+    @IsString()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Essence name',
+        example: 'Essence name',
+        type: String,
+    })
+    name?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Soft-delete flag. Send false to deactivate, true to restore',
+        example: true,
+        type: Boolean,
+    })
+    isActive?: boolean;
 }

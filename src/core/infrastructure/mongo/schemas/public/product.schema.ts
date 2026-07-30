@@ -46,6 +46,16 @@ export class Product {
 
     @Prop({ required: false, name: 'sub_category', type: mongoose.Schema.Types.ObjectId, ref: 'CatSubCategory' })
     subCategory: CatSubCategory;
+
+    /** Denormalised from the review collection so listings can sort and filter by rating. */
+    @Prop({ required: false, name: 'ratingAvg', type: Number, default: 0, min: 0, max: 5 })
+    ratingAvg: number;
+
+    @Prop({ required: false, name: 'reviewsCount', type: Number, default: 0, min: 0 })
+    reviewsCount: number;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+/** Inventory reports: stock summary, low/out-of-stock lists and the dead-stock anti-join all filter on both. */
+ProductSchema.index({ isActive: 1, stock: 1 });

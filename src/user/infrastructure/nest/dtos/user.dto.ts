@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsArray, IsBoolean, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../../../../core/domain/utils/regex/regex.util";
 
 export class CreateUserDTO {
@@ -44,4 +44,89 @@ export class CreateUserDTO {
         },
     )
     email: string;
+}
+
+/**
+ * Self-service profile update. Password is deliberately out: changing it needs
+ * the current password, which belongs in its own endpoint.
+ */
+export class UpdateUserDTO {
+    @IsString()
+    @IsOptional()
+    @MaxLength(50)
+    @ApiPropertyOptional({
+        description: 'User first name',
+        example: 'Jane',
+        type: String,
+        maxLength: 50,
+    })
+    firstName?: string;
+
+    @IsString()
+    @IsOptional()
+    @MaxLength(50)
+    @ApiPropertyOptional({
+        description: 'User last name',
+        example: 'Doe',
+        type: String,
+        maxLength: 50,
+    })
+    lastName?: string;
+
+    @IsString()
+    @IsOptional()
+    @MaxLength(20)
+    @ApiPropertyOptional({
+        description: 'User phone number',
+        example: '+5491122334455',
+        type: String,
+        maxLength: 20,
+    })
+    phone?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Whether the user is subscribed to the newsletter',
+        example: true,
+        type: Boolean,
+    })
+    newsletter?: boolean;
+
+    @IsEmail()
+    @IsOptional()
+    @Matches(
+        EMAIL_REGEX,
+        {
+            message: 'Email must be a valid email address.',
+        },
+    )
+    @ApiPropertyOptional({
+        description: 'User email',
+        example: 'example@test.com',
+        type: String,
+    })
+    email?: string;
+}
+
+/** Everything a user can change about themselves, plus the admin-only isActive lever. */
+export class AdminUpdateUserDTO extends UpdateUserDTO {
+    @IsBoolean()
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Soft-delete flag. Send false to deactivate, true to restore',
+        example: true,
+        type: Boolean,
+    })
+    isActive?: boolean;
+
+    @IsArray()
+    @IsMongoId({ each: true })
+    @IsOptional()
+    @ApiPropertyOptional({
+        description: 'Replaces the full set of role ids assigned to the user',
+        example: ['64f1e2b8a1c4d0012345678'],
+        type: [String],
+    })
+    roles?: string[];
 }

@@ -1,10 +1,12 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
 import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { ICatPaymentMethodService } from "../../../domain/services/cat-payment-method.service";
 import SymbolsCatalogs from "../../../symbols-catalogs";
-import { CreatePaymentMethodDTO } from "../dtos/cat-payment-method.dto";
+import { CreatePaymentMethodDTO, UpdatePaymentMethodDTO } from "../dtos/cat-payment-method.dto";
 
 
 
@@ -17,6 +19,7 @@ export class CatPaymentMethodController {
 
     @Post()
     @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
     @HttpCode(201)
     @ApiResponse(
         {
@@ -52,6 +55,20 @@ export class CatPaymentMethodController {
         return this.catPaymentMethodService.findAll();
     }
 
+    // Declared before `:id` so the literal route wins the match. Admin-only: the
+    // storefront keeps seeing active rows only, the dashboard needs the deactivated
+    // ones listed to be able to restore them.
+    @Get('all')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Return all Payment Methods, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findAllIncludingInactive() {
+        return this.catPaymentMethodService.findAll(true);
+    }
+
     @Get(':id')
     @HttpCode(200)
     @ApiResponse(
@@ -68,6 +85,47 @@ export class CatPaymentMethodController {
     )
     async findById(@Param('id') id: string) {
         return this.catPaymentMethodService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Payment Method updated'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Payment Method not Found'
+        }
+    )
+    @ApiBody({ type: UpdatePaymentMethodDTO, description: 'Data to update a Payment Method' })
+    async update(@Param('id') id: string, @Body() body: UpdatePaymentMethodDTO) {
+        return this.catPaymentMethodService.update(id, body);
+    }
+
+    @Delete(':id')
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @HttpCode(200)
+    @ApiResponse(
+        {
+            status: 200,
+            description: 'Payment Method deactivated (soft delete)'
+        }
+    )
+    @ApiResponse(
+        {
+            status: 404,
+            description: 'Payment Method not Found'
+        }
+    )
+    async delete(@Param('id') id: string) {
+        return this.catPaymentMethodService.delete(id);
     }
 
 

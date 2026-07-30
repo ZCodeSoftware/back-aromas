@@ -3,7 +3,7 @@ import { ICatTypeHousingService } from "../../domain/services/cat-type-housing.s
 import SymbolsCatalogs from "../../symbols-catalogs";
 import { ICatTypeHousingRepository } from "../../domain/repositories/cat-type-housing.repository";
 import { CatTypeHousingModel } from "../../domain/models/cat-type-housing.model";
-import { ICreateTypeHousing } from "../../domain/types/cat-type-housing.type";
+import { ICreateTypeHousing, IUpdateTypeHousing } from "../../domain/types/cat-type-housing.type";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 
 @Injectable()
@@ -19,8 +19,8 @@ export class CatTypeHousingService implements ICatTypeHousingService {
         return await this.catTypeHousingRepository.create(catTypeHousingModel);
     }
 
-    async findAll(): Promise<CatTypeHousingModel[]> {
-        return await this.catTypeHousingRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatTypeHousingModel[]> {
+        return await this.catTypeHousingRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatTypeHousingModel> {
@@ -29,5 +29,14 @@ export class CatTypeHousingService implements ICatTypeHousingService {
         if (!typeHousing) throw new BaseErrorException("Type Housing by id not found", HttpStatus.BAD_REQUEST)
 
         return typeHousing
+    }
+
+    async update(id: string, typeHousing: IUpdateTypeHousing): Promise<CatTypeHousingModel> {
+        const catTypeHousingModel = CatTypeHousingModel.create(typeHousing)
+        return await this.catTypeHousingRepository.update(id, catTypeHousingModel)
+    }
+
+    async delete(id: string): Promise<CatTypeHousingModel> {
+        return await this.catTypeHousingRepository.softDelete(id)
     }
 }

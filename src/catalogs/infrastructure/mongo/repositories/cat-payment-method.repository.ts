@@ -23,14 +23,35 @@ export class CatPaymentMethodRepository implements ICatPaymentMethodRepository {
     }
 
     async findById(id: string): Promise<CatPaymentMethodModel | null> {
-        const paymentMethod = await this.catPaymentMethodDB.findById(id);
+        const paymentMethod = await this.catPaymentMethodDB.findOne({ _id: id, isActive: true });
         if (!paymentMethod) return null;
         return CatPaymentMethodModel.hydrate(paymentMethod);
     }
 
-    async findAll(): Promise<CatPaymentMethodModel[]> {
-        const paymentMethod = await this.catPaymentMethodDB.find();
+    async findAll(includeInactive = false): Promise<CatPaymentMethodModel[]> {
+        const paymentMethod = await this.catPaymentMethodDB.find(includeInactive ? {} : { isActive: true });
 
         return paymentMethod.map((paymentMethod) => CatPaymentMethodModel.hydrate(paymentMethod));
+    }
+
+    async update(id: string, paymentMethod: CatPaymentMethodModel): Promise<CatPaymentMethodModel> {
+        // Undefined fields are dropped so a partial body only touches what it sends.
+        const updateObject = Object.fromEntries(
+            Object.entries(paymentMethod.toJSON()).filter(([key, value]) => value !== undefined && key !== '_id')
+        );
+
+        const paymentMethodToUpdate = await this.catPaymentMethodDB.findByIdAndUpdate(id, updateObject, { new: true });
+
+        if (!paymentMethodToUpdate) throw new BaseErrorException(`Payment Method not found`, HttpStatus.NOT_FOUND)
+
+        return CatPaymentMethodModel.hydrate(paymentMethodToUpdate);
+    }
+
+    async softDelete(id: string): Promise<CatPaymentMethodModel> {
+        const paymentMethod = await this.catPaymentMethodDB.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!paymentMethod) throw new BaseErrorException(`Payment Method not found`, HttpStatus.NOT_FOUND)
+
+        return CatPaymentMethodModel.hydrate(paymentMethod);
     }
 }
