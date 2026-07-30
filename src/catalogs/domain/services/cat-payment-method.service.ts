@@ -6,7 +6,7 @@ import { ICreatePaymentMethod, IUpdatePaymentMethod } from "../types/cat-payment
 export interface ICatPaymentMethodService {
     create(catalogs: ICreatePaymentMethod): Promise<CatPaymentMethodModel>;
     findById(id: string): Promise<CatPaymentMethodModel>;
-    findAll(): Promise<CatPaymentMethodModel[]>;
+    findAll(includeInactive?: boolean): Promise<CatPaymentMethodModel[]>;
     update(id: string, paymentMethod: IUpdatePaymentMethod): Promise<CatPaymentMethodModel>;
     delete(id: string): Promise<CatPaymentMethodModel>;
 }

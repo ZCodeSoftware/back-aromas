@@ -39,8 +39,8 @@ export class UserService implements IUserService {
         return this.userRepository.findById(id);
     }
 
-    async findAll(): Promise<UserModel[]> {
-        return this.userRepository.findAll();
+    async findAll(includeInactive = false): Promise<UserModel[]> {
+        return this.userRepository.findAll(includeInactive);
     }
 
     async update(id: string, user: IUpdateUser): Promise<UserModel> {

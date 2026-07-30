@@ -24,8 +24,8 @@ export class CatCategoryRepository implements ICatCategoryRepository {
         return CatCategoryModel.hydrate(newCategory);
     }
 
-    async findAll(): Promise<CatCategoryModel[]> {
-        const categories = await this.catCategoryDB.find({ isActive: true }).populate('subCategories')
+    async findAll(includeInactive = false): Promise<CatCategoryModel[]> {
+        const categories = await this.catCategoryDB.find(includeInactive ? {} : { isActive: true }).populate('subCategories')
 
         return categories.map((c) => CatCategoryModel.hydrate(c))
     }

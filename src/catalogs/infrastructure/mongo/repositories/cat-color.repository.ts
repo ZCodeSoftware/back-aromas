@@ -28,8 +28,8 @@ export class CatColorRepository implements ICatColorRepository {
         return CatColorModel.hydrate(color);
     }
 
-    async findAll(): Promise<CatColorModel[]>{
-        const colors = await this.catColorDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatColorModel[]>{
+        const colors = await this.catColorDB.find(includeInactive ? {} : { isActive: true });
 
         return colors.map((color)=>CatColorModel.hydrate(color))
     }

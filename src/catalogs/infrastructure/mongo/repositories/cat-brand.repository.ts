@@ -29,8 +29,8 @@ export class CatBrandRepository implements ICatBrandRepository {
         return CatBrandModel.hydrate(brand);
     }
 
-    async findAll(): Promise<CatBrandModel[]> {
-        const brand = await this.catBrandDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatBrandModel[]> {
+        const brand = await this.catBrandDB.find(includeInactive ? {} : { isActive: true });
         return brand.map((brand) => CatBrandModel.hydrate(brand));
     }
 

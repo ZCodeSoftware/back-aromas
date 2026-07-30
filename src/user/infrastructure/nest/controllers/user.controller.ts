@@ -49,6 +49,19 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  // Declared before `:id` so the literal route wins the match. Lists the
+  // deactivated users too, so the dashboard can reactivate them.
+  @Get('all')
+  @HttpCode(200)
+  @UseGuards(AuthGuards, RoleGuards)
+  @Roles(TypeRoles.ADMIN)
+  @ApiResponse({ status: 200, description: 'Return all Users, deactivated ones included' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Admin role required' })
+  async findAllIncludingInactive() {
+    return this.userService.findAll(true);
+  }
+
   @Get('detail')
   @UseGuards(AuthGuards)
   @ApiResponse({ status: 200, description: 'Get user by Id' })

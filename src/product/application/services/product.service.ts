@@ -111,14 +111,18 @@ export class ProductService implements IProductService {
             throw new BaseErrorException('Product not found', HttpStatus.NOT_FOUND);
         }
 
-        const updatedProduct = ProductModel.create({ ...existingProduct.toJSON(), ...product });
+        // Relations arrive as ids and are resolved by the helpers below, so they are
+        // kept out of the spread: hydrate rebuilds them from the persisted objects and
+        // a partial update no longer drops the ones it does not touch.
+        const { associatedEmotion, essence, brand, category, subCategory, color, ...rest } = product;
+        const updatedProduct = ProductModel.hydrate({ ...existingProduct.toJSON(), ...rest });
 
-        await this.updateAssociatedEmotion(updatedProduct, product.associatedEmotion);
-        await this.updateEssence(updatedProduct, product.essence);
-        await this.updateBrand(updatedProduct, product.brand);
-        await this.updateCategory(updatedProduct, product.category);
-        await this.updateSubCategory(updatedProduct, product.subCategory);
-        await this.updateColor(updatedProduct, product.color);
+        await this.updateAssociatedEmotion(updatedProduct, associatedEmotion);
+        await this.updateEssence(updatedProduct, essence);
+        await this.updateBrand(updatedProduct, brand);
+        await this.updateCategory(updatedProduct, category);
+        await this.updateSubCategory(updatedProduct, subCategory);
+        await this.updateColor(updatedProduct, color);
 
         return this.productRepository.update(id, updatedProduct);
     }

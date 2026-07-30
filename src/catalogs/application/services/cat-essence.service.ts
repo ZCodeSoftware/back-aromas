@@ -20,8 +20,8 @@ export class CatEssenceService implements ICatEssenceService {
         return await this.catEssenceRepository.create(newEssence);
     }
 
-    async findAll(): Promise<CatEssenceModel[]> {
-        return await this.catEssenceRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatEssenceModel[]> {
+        return await this.catEssenceRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatEssenceModel | null> {

@@ -31,8 +31,8 @@ export class CatEssenceRepository implements ICatEssenceRepository {
         return CatEssenceModel.hydrate(essence);
     }
 
-    async findAll(): Promise<CatEssenceModel[]> {
-        const essence = await this.catEssenceDB.find({ isActive: true });
+    async findAll(includeInactive = false): Promise<CatEssenceModel[]> {
+        const essence = await this.catEssenceDB.find(includeInactive ? {} : { isActive: true });
         return essence.map((essence) => CatEssenceModel.hydrate(essence))
     }
 

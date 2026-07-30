@@ -29,8 +29,8 @@ export class CatSubCategoryService implements ICatSubCategoryService {
         return subCategory;
     }
 
-    async findAll(): Promise<CatSubCategoryModel[]> {
-        return await this.catSubCategoryRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatSubCategoryModel[]> {
+        return await this.catSubCategoryRepository.findAll(includeInactive);
     }
 
     async update(id: string, subCategory: IUpdateSubCategory): Promise<CatSubCategoryModel> {

@@ -50,8 +50,12 @@ export class ReviewService implements IReviewService {
         return createdReview;
     }
 
-    async findByProduct(productId: string, options: IReviewFilterOptions): Promise<PaginatedResponse<ReviewModel>> {
-        return this.reviewRepository.findByProduct(productId, options);
+    async findByProduct(
+        productId: string,
+        options: IReviewFilterOptions,
+        includeInactive = false,
+    ): Promise<PaginatedResponse<ReviewModel>> {
+        return this.reviewRepository.findByProduct(productId, options, includeInactive);
     }
 
     async findByUser(userId: string, options: IReviewFilterOptions): Promise<PaginatedResponse<ReviewModel>> {

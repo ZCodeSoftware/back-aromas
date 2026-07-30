@@ -8,7 +8,7 @@ import { SortByFields } from "../../../domain/enum/sort-by-fields.enum";
 import { SortOrder } from "../../../domain/enum/sort-order.enum";
 import { ProductModel } from "../../../domain/models/product.model";
 import { IProductRepository } from "../../../domain/repositories/product.interface.repository";
-import { FilterOptionsDTO } from "../../nest/dtos/filter.dto";
+import { FilterOptions } from "../../../domain/types/filter.type";
 import { ProductSchema } from "../schemas/product.schema";
 
 @Injectable()
@@ -34,13 +34,14 @@ export class ProductRepository implements IProductRepository {
         return ProductModel.hydrate(product);
     }
 
-    async findAll(options: FilterOptionsDTO = {}): Promise<PaginatedResponse<ProductModel>> {
+    async findAll(options: FilterOptions = {}): Promise<PaginatedResponse<ProductModel>> {
         const {
             page = 1,
             limit = 10,
             sortBy = SortByFields.CREATED_AT,
             sortOrder = SortOrder.DESC,
             isActive,
+            includeInactive,
             search,
             priceMin,
             priceMax,
@@ -61,8 +62,14 @@ export class ProductRepository implements IProductRepository {
 
         const filters: any = {};
 
-        // Soft-deleted products stay out of the listing unless explicitly asked for.
-        filters.isActive = isActive !== undefined ? isActive : true;
+        // Soft-deleted products stay out of the listing unless explicitly asked for:
+        // either filtered on their own (isActive) or listed next to the active ones
+        // (includeInactive, the admin listing).
+        if (isActive !== undefined) {
+            filters.isActive = isActive;
+        } else if (!includeInactive) {
+            filters.isActive = true;
+        }
 
         if (search) {
             filters.$or = [

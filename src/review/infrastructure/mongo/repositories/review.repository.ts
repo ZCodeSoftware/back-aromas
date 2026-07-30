@@ -41,9 +41,13 @@ export class ReviewRepository implements IReviewRepository {
         return ReviewModel.hydrate(review);
     }
 
-    async findByProduct(productId: string, options: IReviewFilterOptions): Promise<PaginatedResponse<ReviewModel>> {
+    async findByProduct(
+        productId: string,
+        options: IReviewFilterOptions,
+        includeInactive = false,
+    ): Promise<PaginatedResponse<ReviewModel>> {
         return this.paginate(
-            { product: productId, isActive: true },
+            { product: productId, ...(includeInactive ? {} : { isActive: true }) },
             options,
             { path: 'user', select: 'firstName lastName _id' },
         );

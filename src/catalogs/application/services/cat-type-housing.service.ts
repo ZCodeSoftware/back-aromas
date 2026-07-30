@@ -19,8 +19,8 @@ export class CatTypeHousingService implements ICatTypeHousingService {
         return await this.catTypeHousingRepository.create(catTypeHousingModel);
     }
 
-    async findAll(): Promise<CatTypeHousingModel[]> {
-        return await this.catTypeHousingRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatTypeHousingModel[]> {
+        return await this.catTypeHousingRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatTypeHousingModel> {

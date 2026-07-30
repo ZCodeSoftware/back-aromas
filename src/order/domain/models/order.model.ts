@@ -10,6 +10,11 @@ import { IOrderStatusRef } from '../types/order.type';
 import { OrderItemModel } from './order-item.model';
 
 export class OrderModel extends BaseModel {
+  /**
+   * Consecutive number the buyer sees. Assigned by the store when the order is
+   * first written, like `_id`, so it is absent on an aggregate not saved yet.
+   */
+  private _orderNumber?: number;
   private _user: any;
   private _items: OrderItemModel[] = [];
   private _subTotalPrice = 0;
@@ -24,6 +29,10 @@ export class OrderModel extends BaseModel {
   private _channel: OrderChannel = OrderChannel.ONLINE;
   private _soldBy?: any;
   private _customer?: any;
+
+  get orderNumber(): number | null {
+    return this._orderNumber ?? null;
+  }
 
   /** Null on a counter sale with no account behind it. */
   get userId(): string | null {
@@ -106,8 +115,12 @@ export class OrderModel extends BaseModel {
 
   public toJSON() {
     const aggregate = this._id ? { _id: this._id.toValue() } : {};
+    // Same reasoning as `_id`: an aggregate on its way to being created has no
+    // number yet, and emitting the key as undefined would write a null.
+    const numbered = this._orderNumber ? { orderNumber: this._orderNumber } : {};
     return {
       ...aggregate,
+      ...numbered,
       user: this._user,
       items: this._items.map((item) => item.toJSON()),
       subTotalPrice: this._subTotalPrice,
@@ -182,6 +195,7 @@ export class OrderModel extends BaseModel {
 
   static hydrate(order: any): OrderModel {
     const newOrder = new OrderModel(new Identifier(order._id));
+    newOrder._orderNumber = order.orderNumber ?? undefined;
     newOrder._user = order.user;
     newOrder._items = order.items ? order.items.map((item: any) => OrderItemModel.hydrate(item)) : [];
     newOrder._subTotalPrice = order.subTotalPrice ?? 0;

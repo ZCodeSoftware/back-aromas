@@ -50,8 +50,8 @@ export class UserRepository implements IUserRepository {
         return UserModel.hydrate(user);
     }
 
-    async findAll(): Promise<UserModel[]> {
-        const users = await this.userDB.find({ isActive: true }).populate(USER_POPULATE);
+    async findAll(includeInactive = false): Promise<UserModel[]> {
+        const users = await this.userDB.find(includeInactive ? {} : { isActive: true }).populate(USER_POPULATE);
         return users?.map(user => UserModel.hydrate(user));
     }
 

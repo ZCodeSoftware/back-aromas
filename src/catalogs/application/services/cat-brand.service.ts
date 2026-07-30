@@ -21,8 +21,8 @@ export class CatBrandService implements ICatBrandService {
         return await this.catBrandRepository.create(catBrandModel);
     }
 
-    async findAll(): Promise<CatBrandModel[]> {
-        return await this.catBrandRepository.findAll()
+    async findAll(includeInactive = false): Promise<CatBrandModel[]> {
+        return await this.catBrandRepository.findAll(includeInactive)
     }
 
     async findById(id: string): Promise<CatBrandModel> {

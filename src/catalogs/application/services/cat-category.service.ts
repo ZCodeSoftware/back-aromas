@@ -37,8 +37,8 @@ export class CatCategoryService implements ICatCategoryService {
         return await this.catCategoryRepository.create(catCategoryModel);
     }
 
-    async findAll(): Promise<CatCategoryModel[]> {
-        return await this.catCategoryRepository.findAll();
+    async findAll(includeInactive = false): Promise<CatCategoryModel[]> {
+        return await this.catCategoryRepository.findAll(includeInactive);
     }
 
     async findById(id: string): Promise<CatCategoryModel | null> {

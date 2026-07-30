@@ -1,6 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Roles } from "../../../../auth/infrastructure/nest/decorators/roles.decorator";
 import { AuthGuards } from "../../../../auth/infrastructure/nest/guards/auth.guard";
+import { RoleGuards } from "../../../../auth/infrastructure/nest/guards/role.guard";
+import { TypeRoles } from "../../../../core/domain/enums/type-roles.enum";
 import { CurrentUser } from "../../../../core/infrastructure/nest/decorators/current-user.decorator";
 import { IReviewService } from "../../../domain/services/review.interface.service";
 import SymbolsReview from "../../../symbols-review";
@@ -41,6 +44,22 @@ export class ReviewController {
     @ApiResponse({ status: 200, description: 'Paginated active reviews of a product' })
     async findByProduct(@Param('productId') productId: string, @Query() options: FilterReviewDTO) {
         return this.reviewService.findByProduct(productId, options);
+    }
+
+    // Admin-only: the storefront keeps seeing the active reviews only, while the
+    // dashboard needs the moderated ones listed to be able to restore them.
+    @Get('product/:productId/all')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @ApiResponse({ status: 200, description: 'Paginated reviews of a product, deactivated ones included' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    async findByProductIncludingInactive(
+        @Param('productId') productId: string,
+        @Query() options: FilterReviewDTO,
+    ) {
+        return this.reviewService.findByProduct(productId, options, true);
     }
 
     @Put(':id')
