@@ -6,10 +6,12 @@ import { CartModel } from "../../../domain/models/cart.model";
 import { ICartRepository } from "../../../domain/repositories/cart.interface.repository";
 import { CartSchema } from "../schemas/cart.schema";
 
-const ITEM_PRODUCT_POPULATE = {
-    path: 'items.product',
-    select: 'name price stock images isActive',
-};
+const CART_POPULATE = [
+    { path: 'items.product', select: 'name price stock images isActive' },
+    // The combo's own price and stock are derived, so only its display fields are
+    // pulled here; the authoritative figures come from the combo repository.
+    { path: 'items.combo', select: 'name images isActive' },
+];
 
 @Injectable()
 export class CartRepository implements ICartRepository {
@@ -23,23 +25,29 @@ export class CartRepository implements ICartRepository {
 
         if (!newCart) throw new BaseErrorException(`Cart shouldn't be created`, HttpStatus.BAD_REQUEST);
 
-        await newCart.populate(ITEM_PRODUCT_POPULATE);
+        await newCart.populate(CART_POPULATE);
 
         return CartModel.hydrate(newCart);
     }
 
     async findByUser(userId: string): Promise<CartModel | null> {
-        const cart = await this.cartDB.findOne({ user: userId }).populate(ITEM_PRODUCT_POPULATE);
+        const cart = await this.cartDB.findOne({ user: userId }).populate(CART_POPULATE);
         if (!cart) return null;
         return CartModel.hydrate(cart);
     }
 
     async update(cart: CartModel): Promise<CartModel> {
-        const { items, totalPrice } = cart.toJSON();
+        const { items, totalPrice, couponCode } = cart.toJSON();
 
         const updatedCart = await this.cartDB
-            .findByIdAndUpdate(cart.id.toString(), { items, totalPrice }, { new: true })
-            .populate(ITEM_PRODUCT_POPULATE);
+            .findByIdAndUpdate(
+                cart.id.toString(),
+                // $set with an explicit null so clearing the coupon actually clears it:
+                // Mongoose drops undefined keys from an update instead of unsetting them.
+                { $set: { items, totalPrice, couponCode } },
+                { new: true },
+            )
+            .populate(CART_POPULATE);
 
         if (!updatedCart) {
             throw new BaseErrorException('Cart not found', HttpStatus.NOT_FOUND);

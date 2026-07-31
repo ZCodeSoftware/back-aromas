@@ -8,7 +8,7 @@ import { CurrentUser } from "../../../../core/infrastructure/nest/decorators/cur
 import { IPosService } from "../../../domain/services/pos.interface.service";
 import SymbolsOrder from "../../../symbols-order";
 import { FilterPosSalesDTO } from "../dtos/filter-order.dto";
-import { CreatePosSaleDTO } from "../dtos/pos-sale.dto";
+import { CreatePosSaleDTO, PreviewPosSaleDTO } from "../dtos/pos-sale.dto";
 
 @ApiTags('pos')
 @Controller('pos')
@@ -38,6 +38,24 @@ export class PosController {
     @ApiBody({ type: CreatePosSaleDTO, description: 'Lines, tender type and optional buyer of a counter sale' })
     async createSale(@CurrentUser('_id') soldBy: string, @Body() body: CreatePosSaleDTO) {
         return this.posService.createSale(soldBy, body);
+    }
+
+    @Post('preview')
+    @HttpCode(200)
+    @UseGuards(AuthGuards, RoleGuards)
+    @Roles(TypeRoles.ADMIN)
+    @ApiOperation({
+        summary: 'Quote a counter sale',
+        description:
+            'Prices the lines through the same engine the online checkout uses, without writing anything. A coupon that cannot be applied comes back as `couponError` instead of failing.',
+    })
+    @ApiResponse({ status: 200, description: 'Quoted totals, per line and for the sale' })
+    @ApiResponse({ status: 400, description: 'Empty items, inactive product or insufficient stock' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Admin role required' })
+    @ApiBody({ type: PreviewPosSaleDTO, description: 'Lines and optional coupon to quote' })
+    async preview(@Body() body: PreviewPosSaleDTO) {
+        return this.posService.preview(body);
     }
 
     @Patch('sale/:id/refund')

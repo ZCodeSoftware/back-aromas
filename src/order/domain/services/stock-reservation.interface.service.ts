@@ -1,5 +1,5 @@
 import { OrderModel } from "../models/order.model";
-import { IOrderLine, IStockReservation } from "../types/order.type";
+import { IStockLine, IStockReservation } from "../types/order.type";
 
 /**
  * Owns every stock movement of the order context. Extracted from OrderService so
@@ -13,7 +13,7 @@ export interface IStockReservationService {
      * everything already taken is given back and the call throws, so a sale never
      * half-commits.
      */
-    reserve(lines: IOrderLine[]): Promise<IStockReservation[]>;
+    reserve(lines: IStockLine[]): Promise<IStockReservation[]>;
     /** Best-effort give-back; a failure is logged, never thrown. */
     release(reserved: IStockReservation[]): Promise<void>;
     /** Idempotent: an order whose stock was already given back is left alone. */

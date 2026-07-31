@@ -1,18 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsInt, IsMongoId, IsNotEmpty, Min } from "class-validator";
+import { IsInt, IsMongoId, IsOptional, IsString, MaxLength, Min, ValidateIf } from "class-validator";
 
 export class AddCartItemDTO {
+    /**
+     * Exactly one of productId / comboId. The ValidateIf pair is what enforces it:
+     * each field is required only while the other is absent, so sending both or
+     * neither fails validation instead of reaching the service.
+     */
+    @ValidateIf((dto: AddCartItemDTO) => !dto.comboId)
     @IsMongoId()
-    @IsNotEmpty()
-    @ApiProperty({
-        description: 'ID of the product to add to the cart',
+    @ApiPropertyOptional({
+        description: 'ID of the product to add. Mutually exclusive with comboId',
         example: '60c72b2f9b1e8b001c8e4d5d',
         type: String,
-        required: true,
+        required: false,
         name: 'productId',
     })
-    productId: string;
+    productId?: string;
+
+    @ValidateIf((dto: AddCartItemDTO) => !dto.productId)
+    @IsMongoId()
+    @ApiPropertyOptional({
+        description: 'ID of the combo to add. Mutually exclusive with productId',
+        example: '60c72b2f9b1e8b001c8e4d5e',
+        type: String,
+        required: false,
+        name: 'comboId',
+    })
+    comboId?: string;
 
     @IsInt()
     @Min(1)
@@ -41,4 +57,18 @@ export class UpdateCartItemDTO {
         minimum: 0,
     })
     quantity: number;
+}
+
+export class SetCartCouponDTO {
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    @ApiPropertyOptional({
+        description: 'Coupon code to keep on the cart. Omit it to clear the current one',
+        example: 'BIENVENIDA',
+        type: String,
+        required: false,
+        name: 'code',
+    })
+    code?: string;
 }

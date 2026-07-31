@@ -13,8 +13,10 @@ export class ProductRepository implements IProductRepository {
 
     async findById(id: string): Promise<IOrderProduct | null> {
         const product = await this.productDB
+            // category and subCategory come along for the pricing engine, which
+            // scopes promotions on them.
             .findById(id)
-            .select('name price stock isActive')
+            .select('name price stock isActive category subCategory')
             .lean();
 
         if (!product) return null;
@@ -25,6 +27,8 @@ export class ProductRepository implements IProductRepository {
             price: product.price,
             stock: product.stock,
             isActive: product.isActive,
+            category: product.category ? String(product.category) : undefined,
+            subCategory: product.subCategory ? String(product.subCategory) : undefined,
         };
     }
 

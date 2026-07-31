@@ -9,10 +9,12 @@ import { AuthModule } from './auth/auth.module';
 import { ApiKeyGuard } from './auth/infrastructure/nest/guards/api-key.guard';
 import { CartModule } from './cart/cart.module';
 import { CatalogsModule } from './catalogs/catalogs.module';
+import { ComboModule } from './combo/combo.module';
 import { CoreModule } from './core/core.module';
 import { BaseErrorFilter } from './core/infrastructure/nest/filters/base-error.filter';
 import { OrderModule } from './order/order.module';
 import { ProductModule } from './product/product.module';
+import { PromotionModule } from './promotion/promotion.module';
 import { ReviewModule } from './review/review.module';
 import { UserModule } from './user/user.module';
 
@@ -26,6 +28,8 @@ import { UserModule } from './user/user.module';
     AuthModule,
     CatalogsModule,
     ProductModule,
+    ComboModule,
+    PromotionModule,
     AddressModule,
     CartModule,
     OrderModule,

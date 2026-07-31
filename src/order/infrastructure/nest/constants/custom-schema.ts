@@ -2,10 +2,13 @@ import { CatOrderStatus, CatOrderStatusSchema } from '../../../../core/infrastru
 import { CatPaymentMethod, CatPaymentMethodSchema } from '../../../../core/infrastructure/mongo/schemas/catalogs/cat-payment-method.schema';
 import { Address, AddressSchema } from '../../../../core/infrastructure/mongo/schemas/public/address.schema';
 import { Cart, CartSchema } from '../../../../core/infrastructure/mongo/schemas/public/cart.schema';
+import { Combo, ComboSchema } from '../../../../core/infrastructure/mongo/schemas/public/combo.schema';
 import { Counter, CounterSchema } from '../../../../core/infrastructure/mongo/schemas/public/counter.schema';
 import { Metrics, MetricsSchema } from '../../../../core/infrastructure/mongo/schemas/public/metrics.schema';
 import { Order, OrderSchema } from '../../../../core/infrastructure/mongo/schemas/public/order.schema';
 import { Product, ProductSchema } from '../../../../core/infrastructure/mongo/schemas/public/product.schema';
+import { PromotionUsage, PromotionUsageSchema } from '../../../../core/infrastructure/mongo/schemas/public/promotion-usage.schema';
+import { Promotion, PromotionSchema } from '../../../../core/infrastructure/mongo/schemas/public/promotion.schema';
 
 export const orderSchema = {
   name: Order.name,
@@ -15,6 +18,11 @@ export const orderSchema = {
 export const cartSchema = {
   name: Cart.name,
   schema: CartSchema,
+};
+
+export const comboSchema = {
+  name: Combo.name,
+  schema: ComboSchema,
 };
 
 export const productSchema = {
@@ -45,4 +53,14 @@ export const metricsSchema = {
 export const counterSchema = {
   name: Counter.name,
   schema: CounterSchema,
+};
+
+export const promotionSchema = {
+  name: Promotion.name,
+  schema: PromotionSchema,
+};
+
+export const promotionUsageSchema = {
+  name: PromotionUsage.name,
+  schema: PromotionUsageSchema,
 };

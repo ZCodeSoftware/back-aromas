@@ -1,17 +1,22 @@
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import SymbolsAnalytics from "../../../analytics/symbols-analytics";
 import SymbolsCatalogs from "../../../catalogs/symbols-catalogs";
+import SymbolsCombo from "../../../combo/symbols-combo";
 import { BaseErrorException } from "../../../core/domain/exceptions/base.error.exception";
 import { IUserRepository } from "../../../core/domain/repositories/user.interface.repository";
 import { PaginatedResponse } from "../../../core/domain/response/find-all-paginated.response";
 import SymbolsProduct from "../../../product/symbols-product";
+import { IPricingService } from "../../../promotion/domain/services/pricing.interface.service";
+import { IPricingResult } from "../../../promotion/domain/types/pricing.type";
+import SymbolsPromotion from "../../../promotion/symbols-promotion";
 import SymbolsUser from "../../../user/symbols-user";
 import { OrderChannel } from "../../domain/enum/order-channel.enum";
+import { OrderItemType } from "../../domain/enum/order-item-type.enum";
 import { OrderStatus } from "../../domain/enum/order-status.enum";
-import { OrderItemModel } from "../../domain/models/order-item.model";
 import { OrderModel } from "../../domain/models/order.model";
 import { ICatOrderStatusRepository } from "../../domain/repositories/cat-order-status.interface.repository";
 import { ICatPaymentMethodRepository } from "../../domain/repositories/cat-payment-method.interface.repository";
+import { IComboRepository } from "../../domain/repositories/combo.interface.repository";
 import { IMetricsRepository } from "../../domain/repositories/metrics.interface.repository";
 import { IOrderRepository } from "../../domain/repositories/order.interface.repository";
 import { IProductRepository } from "../../domain/repositories/product.interface.repository";
@@ -20,11 +25,13 @@ import { IStockReservationService } from "../../domain/services/stock-reservatio
 import {
     ICreatePosSale,
     IOrderFilterOptions,
-    IOrderLine,
     IOrderStatusRef,
     IPosSaleCustomer,
     IPosSaleItem,
+    IPreviewPosSale,
+    ISaleLine,
 } from "../../domain/types/order.type";
+import { applyPricing, saleLineKey, toOrderItem, toPricingLines, toStockLines } from "../../domain/utils/sale-lines.util";
 import SymbolsOrder from "../../symbols-order";
 
 @Injectable()
@@ -36,6 +43,8 @@ export class PosService implements IPosService {
         private readonly orderRepository: IOrderRepository,
         @Inject(SymbolsProduct.IProductRepository)
         private readonly productRepository: IProductRepository,
+        @Inject(SymbolsCombo.IComboRepository)
+        private readonly comboRepository: IComboRepository,
         @Inject(SymbolsCatalogs.ICatPaymentMethodRepository)
         private readonly catPaymentMethodRepository: ICatPaymentMethodRepository,
         @Inject(SymbolsCatalogs.ICatOrderStatusRepository)
@@ -46,6 +55,8 @@ export class PosService implements IPosService {
         private readonly metricsRepository: IMetricsRepository,
         @Inject(SymbolsOrder.IStockReservationService)
         private readonly stockReservation: IStockReservationService,
+        @Inject(SymbolsPromotion.IPricingService)
+        private readonly pricing: IPricingService,
     ) { }
 
     async createSale(soldBy: string, sale: ICreatePosSale): Promise<OrderModel> {
@@ -74,30 +85,62 @@ export class PosService implements IPosService {
             status: await this.resolveStatus(OrderStatus.PAID),
         });
         orderModel.setPaymentMethod({ _id: paymentMethod._id });
-        lines.forEach(({ product, quantity }) =>
-            orderModel.addItem(
-                OrderItemModel.create({
-                    product: { _id: product._id },
-                    name: product.name,
-                    unitPrice: product.price,
-                    quantity,
-                }),
-            ),
-        );
+        lines.forEach((line) => orderModel.addItem(toOrderItem(line)));
 
-        const reserved = await this.stockReservation.reserve(lines);
+        // Same engine as the online checkout, so the counter can never charge a
+        // different price than the storefront during a sale.
+        const pricing = await this.pricing.price({
+            lines: toPricingLines(lines),
+            couponCode: sale.couponCode,
+            userId: sale.userId ?? null,
+            channel: OrderChannel.POS,
+            shippingPrice: 0,
+        });
+
+        if (pricing.couponError) {
+            throw new BaseErrorException(pricing.couponError, HttpStatus.BAD_REQUEST);
+        }
+
+        applyPricing(orderModel, pricing, pricing.coupon?.code);
+
+        await this.pricing.commitUsage(pricing, sale.userId ?? null);
+
+        let reserved: Awaited<ReturnType<IStockReservationService['reserve']>>;
+        try {
+            reserved = await this.stockReservation.reserve(toStockLines(lines));
+        } catch (error) {
+            await this.pricing.revertUsage(pricing, sale.userId ?? null);
+            throw error;
+        }
 
         let createdSale: OrderModel;
         try {
             createdSale = await this.orderRepository.create(orderModel);
         } catch (error) {
             await this.stockReservation.release(reserved);
+            await this.pricing.revertUsage(pricing, sale.userId ?? null);
             throw error;
         }
 
         this.trackSales(lines);
 
         return createdSale;
+    }
+
+    /**
+     * Prices a counter sale without writing anything, so the operator can read the
+     * total out loud before taking the money.
+     */
+    async preview(sale: IPreviewPosSale): Promise<IPricingResult> {
+        const lines = await this.buildLines(this.mergeItems(sale.items));
+
+        return this.pricing.price({
+            lines: toPricingLines(lines),
+            couponCode: sale.couponCode,
+            userId: sale.userId ?? null,
+            channel: OrderChannel.POS,
+            shippingPrice: 0,
+        });
     }
 
     async refund(id: string): Promise<OrderModel> {
@@ -141,15 +184,32 @@ export class PosService implements IPosService {
         return status;
     }
 
-    /** Sums the quantities of repeated products into a single line. */
+    /**
+     * Sums the quantities of repeated lines into one. Keyed by type plus id, not
+     * by id alone: a product and a combo live in different collections, and two
+     * lines of the same combo left unmerged would each pass the stock check on
+     * their own — the very bug the merge exists to prevent.
+     */
     private mergeItems(items: IPosSaleItem[]): IPosSaleItem[] {
-        const merged = new Map<string, number>();
+        const merged = new Map<string, IPosSaleItem>();
 
-        items.forEach(({ productId, quantity }) =>
-            merged.set(productId, (merged.get(productId) ?? 0) + quantity),
-        );
+        items.forEach((item) => {
+            const key = saleLineKey({
+                itemType: item.comboId ? OrderItemType.COMBO : OrderItemType.PRODUCT,
+                productId: item.productId,
+                comboId: item.comboId,
+            });
+            const existing = merged.get(key);
 
-        return [...merged.entries()].map(([productId, quantity]) => ({ productId, quantity }));
+            if (existing) {
+                existing.quantity += item.quantity;
+                return;
+            }
+
+            merged.set(key, { ...item });
+        });
+
+        return [...merged.values()];
     }
 
     /**
@@ -170,43 +230,71 @@ export class PosService implements IPosService {
         };
     }
 
-    /** Loads each product fresh and checks it can still be sold. */
-    private async buildLines(items: IPosSaleItem[]): Promise<IOrderLine[]> {
-        const lines: IOrderLine[] = [];
+    /** Loads each product or combo fresh and checks it can still be sold. */
+    private async buildLines(items: IPosSaleItem[]): Promise<ISaleLine[]> {
+        const lines: ISaleLine[] = [];
 
         for (const item of items) {
-            const product = await this.productRepository.findById(item.productId);
-
-            if (!product) {
-                throw new BaseErrorException(
-                    `A product in this sale no longer exists`,
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-
-            if (!product.isActive) {
-                throw new BaseErrorException(`Product ${product.name} is not available`, HttpStatus.BAD_REQUEST);
-            }
-
-            if (item.quantity > product.stock) {
-                throw new BaseErrorException(
-                    `Insufficient stock for ${product.name}: ${product.stock} available, ${item.quantity} requested`,
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-
-            lines.push({ product, quantity: item.quantity });
+            lines.push(item.comboId ? await this.buildComboLine(item) : await this.buildProductLine(item));
         }
 
         return lines;
     }
 
-    /** Fire and forget: a metrics failure must never break a sale. */
-    private trackSales(lines: IOrderLine[]): void {
-        lines.forEach(({ product, quantity }) =>
+    private async buildProductLine(item: IPosSaleItem): Promise<ISaleLine> {
+        const product = await this.productRepository.findById(item.productId);
+
+        if (!product) {
+            throw new BaseErrorException(
+                `A product in this sale no longer exists`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!product.isActive) {
+            throw new BaseErrorException(`Product ${product.name} is not available`, HttpStatus.BAD_REQUEST);
+        }
+
+        if (item.quantity > product.stock) {
+            throw new BaseErrorException(
+                `Insufficient stock for ${product.name}: ${product.stock} available, ${item.quantity} requested`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return { itemType: OrderItemType.PRODUCT, product, quantity: item.quantity };
+    }
+
+    private async buildComboLine(item: IPosSaleItem): Promise<ISaleLine> {
+        const combo = await this.comboRepository.findById(item.comboId);
+
+        if (!combo) {
+            throw new BaseErrorException(`A combo in this sale no longer exists`, HttpStatus.BAD_REQUEST);
+        }
+
+        if (!combo.isActive) {
+            throw new BaseErrorException(`Combo ${combo.name} is not available`, HttpStatus.BAD_REQUEST);
+        }
+
+        if (item.quantity > combo.stock) {
+            throw new BaseErrorException(
+                `Insufficient stock for ${combo.name}: ${combo.stock} available, ${item.quantity} requested`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return { itemType: OrderItemType.COMBO, combo, quantity: item.quantity };
+    }
+
+    /**
+     * Fire and forget: a metrics failure must never break a sale. Combos are
+     * flattened first, since the metrics collection is keyed by product.
+     */
+    private trackSales(lines: ISaleLine[]): void {
+        toStockLines(lines).forEach(({ productId, quantity }) =>
             this.metricsRepository
-                .incrementSellTimes(product._id, quantity)
-                .catch((error) => this.logger.warn(`Could not track sale of ${product._id}: ${error?.message}`)),
+                .incrementSellTimes(productId, quantity)
+                .catch((error) => this.logger.warn(`Could not track sale of ${productId}: ${error?.message}`)),
         );
     }
 }
