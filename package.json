@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:order-status": "ts-node -r tsconfig-paths/register ./scripts/migrate-order-status.ts",
     "migrate:order-numbers": "ts-node -r tsconfig-paths/register ./scripts/migrate-order-numbers.ts",
+    "migrate:pricing-fields": "ts-node -r tsconfig-paths/register ./scripts/migrate-pricing-fields.ts",
     "generate:structure": "bash ./scripts/generate-structure.sh",
     "generate:schema": "bash ./scripts/generate-schema.sh"
   },

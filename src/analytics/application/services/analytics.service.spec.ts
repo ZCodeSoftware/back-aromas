@@ -268,7 +268,7 @@ describe('AnalyticsService', () => {
 
             expect(customerOrders + report.anonymous.orders).toBe(15);
             expect(report.cohorts.ordersFromNew + report.cohorts.ordersFromReturning).toBe(customerOrders);
-            expect(report.anonymous.note).toMatch(/no linked account/);
+            expect(report.anonymous.note).toMatch(/sin una cuenta vinculada/);
         });
 
         it('honours the leaderboard limit', async () => {
@@ -305,7 +305,7 @@ describe('AnalyticsService', () => {
             const report = await service.getConversion(RANGE);
 
             expect(report.carts.scope).toBe('SNAPSHOT');
-            expect(report.carts.note).toMatch(/cannot be scoped to a date range/);
+            expect(report.carts.note).toMatch(/no se puede acotar a un rango de fechas/);
             expect(report.lifetime.scope).toBe('LIFETIME');
         });
 

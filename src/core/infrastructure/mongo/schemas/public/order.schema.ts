@@ -3,19 +3,92 @@ import mongoose, { HydratedDocument } from "mongoose";
 import { CatOrderStatus } from "../catalogs/cat-order-status.schema";
 import { CatPaymentMethod } from "../catalogs/cat-payment-method.schema";
 import { Address } from "./address.schema";
+import { Combo } from "./combo.schema";
 import { Product } from "./product.schema";
+import { Promotion } from "./promotion.schema";
 import { User } from "./user.schema";
 
 export type OrderDocument = HydratedDocument<Order>;
 
 /**
+ * One component of a purchased combo, snapshotted like the line above it.
+ * `quantity` is per unit of combo, so the units actually sold are
+ * `component.quantity * item.quantity` — that is what stock restoring uses.
+ */
+@Schema({ _id: false })
+export class OrderItemComponent {
+    @Prop({ required: true, name: 'product', type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+    product: Product;
+
+    @Prop({ required: true, name: 'name', type: String })
+    name: string;
+
+    @Prop({ required: true, name: 'quantity', type: Number, min: 1 })
+    quantity: number;
+
+    @Prop({ required: true, name: 'unitPrice', type: Number, min: 0 })
+    unitPrice: number;
+}
+
+export const OrderItemComponentSchema = SchemaFactory.createForClass(OrderItemComponent);
+
+/**
+ * Which promotion took how much off. Snapshotted for the same reason as the
+ * price: editing or deleting a promotion must not rewrite a past order. Reused
+ * both per line and at order level.
+ */
+@Schema({ _id: false })
+export class OrderAppliedPromotion {
+    @Prop({ required: true, name: 'promotion', type: mongoose.Schema.Types.ObjectId, ref: 'Promotion' })
+    promotion: Promotion;
+
+    /** Absent on an automatic promotion, which needs no code to apply. */
+    @Prop({ required: false, name: 'code', type: String })
+    code: string;
+
+    @Prop({ required: true, name: 'name', type: String })
+    name: string;
+
+    @Prop({ required: true, name: 'valueType', type: String })
+    valueType: string;
+
+    @Prop({ required: true, name: 'value', type: Number })
+    value: number;
+
+    @Prop({ required: true, name: 'scope', type: String })
+    scope: string;
+
+    @Prop({ required: true, name: 'discount', type: Number, min: 0 })
+    discount: number;
+}
+
+export const OrderAppliedPromotionSchema = SchemaFactory.createForClass(OrderAppliedPromotion);
+
+/**
  * Immutable snapshot of a purchased line. `name` and `unitPrice` are copied on
  * purpose: a later price change or a deleted product must not rewrite history.
+ *
+ * A line is either a product or a combo, told apart by `itemType`. Documents
+ * written before combos existed carry neither `itemType` nor `combo`; reads
+ * treat a missing type as PRODUCT.
  */
 @Schema({ _id: false })
 export class OrderItem {
-    @Prop({ required: true, name: 'product', type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+    /** PRODUCT | COMBO. Plain string for the same reason as `Order.channel`. */
+    @Prop({ required: true, name: 'itemType', type: String, default: 'PRODUCT' })
+    itemType: string;
+
+    /** Set on a PRODUCT line. Optional since a COMBO line points at `combo` instead. */
+    @Prop({ required: false, name: 'product', type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
     product: Product;
+
+    /** Set on a COMBO line. */
+    @Prop({ required: false, name: 'combo', type: mongoose.Schema.Types.ObjectId, ref: 'Combo' })
+    combo: Combo;
+
+    /** What the combo was made of at purchase time. Empty on a PRODUCT line. */
+    @Prop({ required: false, name: 'components', type: [OrderItemComponentSchema], default: [] })
+    components: OrderItemComponent[];
 
     @Prop({ required: true, name: 'name', type: String })
     name: string;
@@ -26,8 +99,19 @@ export class OrderItem {
     @Prop({ required: true, name: 'quantity', type: Number, min: 1 })
     quantity: number;
 
+    /** Gross line amount: `unitPrice * quantity`, before any discount. */
     @Prop({ required: true, name: 'total', type: Number, min: 0 })
     total: number;
+
+    @Prop({ required: false, name: 'discount', type: Number, min: 0, default: 0 })
+    discount: number;
+
+    /** `total - discount`. What the buyer actually paid for this line. */
+    @Prop({ required: false, name: 'netTotal', type: Number, min: 0, default: 0 })
+    netTotal: number;
+
+    @Prop({ required: false, name: 'appliedPromotions', type: [OrderAppliedPromotionSchema], default: [] })
+    appliedPromotions: OrderAppliedPromotion[];
 }
 
 export const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
@@ -97,8 +181,20 @@ export class Order {
     @Prop({ required: true, name: 'items', type: [OrderItemSchema], default: [] })
     items: OrderItem[];
 
+    /** Gross sum of the lines, before discounts. */
     @Prop({ required: true, name: 'subTotalPrice', type: Number, min: 0, default: 0 })
     subTotalPrice: number;
+
+    /** Sum of the line discounts. Shipping is never discounted. */
+    @Prop({ required: false, name: 'discountTotal', type: Number, min: 0, default: 0 })
+    discountTotal: number;
+
+    @Prop({ required: false, name: 'appliedPromotions', type: [OrderAppliedPromotionSchema], default: [] })
+    appliedPromotions: OrderAppliedPromotion[];
+
+    /** The coupon code actually redeemed, if any. */
+    @Prop({ required: false, name: 'coupon', type: String, uppercase: true, trim: true })
+    coupon: string;
 
     @Prop({ required: true, name: 'shippingPrice', type: Number, min: 0, default: 0 })
     shippingPrice: number;
@@ -153,6 +249,15 @@ OrderSchema.index({ user: 1, createdAt: -1 });
 
 /** Dead-stock `distinct()` and the existing hasPurchasedProduct() lookup. */
 OrderSchema.index({ 'items.product': 1, status: 1 });
+
+/**
+ * Twin of the index above for products sold inside a combo: without it, both
+ * dead-stock and hasPurchasedProduct() would collection-scan for them.
+ */
+OrderSchema.index({ 'items.components.product': 1, status: 1 });
+
+/** Auditing a coupon: which orders redeemed it, newest first. */
+OrderSchema.index({ coupon: 1, createdAt: -1 }, { sparse: true });
 
 /** Point-of-sale listing: this channel, newest first. */
 OrderSchema.index({ channel: 1, createdAt: -1 });

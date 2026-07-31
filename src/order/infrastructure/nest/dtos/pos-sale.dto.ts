@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
     ArrayMaxSize,
     ArrayNotEmpty,
@@ -12,26 +12,43 @@ import {
     IsString,
     MaxLength,
     Min,
+    ValidateIf,
     ValidateNested,
 } from "class-validator";
 
 export class PosSaleItemDTO {
+    /**
+     * Exactly one of productId / comboId. The ValidateIf pair is what enforces it:
+     * each field is required only while the other is absent, so sending both or
+     * neither fails validation instead of reaching the service.
+     */
+    @ValidateIf((dto: PosSaleItemDTO) => !dto.comboId)
     @IsMongoId()
-    @IsNotEmpty()
-    @ApiProperty({
-        description: 'ID of the product being sold',
+    @ApiPropertyOptional({
+        description: 'ID of the product being sold. Mutually exclusive with comboId',
         example: '60c72b2f9b1e8b001c8e4d5d',
         type: String,
-        required: true,
+        required: false,
         name: 'productId',
     })
-    productId: string;
+    productId?: string;
+
+    @ValidateIf((dto: PosSaleItemDTO) => !dto.productId)
+    @IsMongoId()
+    @ApiPropertyOptional({
+        description: 'ID of the combo being sold. Mutually exclusive with productId',
+        example: '60c72b2f9b1e8b001c8e4d5f',
+        type: String,
+        required: false,
+        name: 'comboId',
+    })
+    comboId?: string;
 
     @IsInt()
     @Min(1)
     @Type(() => Number)
     @ApiProperty({
-        description: 'Units sold. Repeated products are merged into a single line',
+        description: 'Units sold. Repeated lines are merged into a single one',
         example: 2,
         type: Number,
         required: true,
@@ -109,4 +126,55 @@ export class CreatePosSaleDTO {
         type: PosCustomerDTO,
     })
     customer?: PosCustomerDTO;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+    @ApiPropertyOptional({
+        description: 'Coupon code to redeem. A code that cannot be applied fails the sale',
+        example: 'BIENVENIDA',
+        type: String,
+        required: false,
+        name: 'couponCode',
+    })
+    couponCode?: string;
+}
+
+/** Prices a counter sale without writing anything, so the operator can quote it. */
+export class PreviewPosSaleDTO {
+    @IsArray()
+    @ArrayNotEmpty()
+    @ArrayMaxSize(100)
+    @ValidateNested({ each: true })
+    @Type(() => PosSaleItemDTO)
+    @ApiProperty({
+        description: 'Lines to price. Prices always come from the live catalogue',
+        type: [PosSaleItemDTO],
+        required: true,
+        name: 'items',
+    })
+    items: PosSaleItemDTO[];
+
+    @IsOptional()
+    @IsMongoId()
+    @ApiPropertyOptional({
+        description: 'Links the quote to an account, so its per-customer coupon limits apply',
+        example: '60c72b2f9b1e8b001c8e4d5e',
+        type: String,
+    })
+    userId?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+    @ApiPropertyOptional({
+        description: 'Coupon code to try. An invalid one comes back as `couponError`',
+        example: 'BIENVENIDA',
+        type: String,
+        required: false,
+        name: 'couponCode',
+    })
+    couponCode?: string;
 }

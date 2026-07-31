@@ -86,12 +86,20 @@ export class OrderRepository implements IOrderRepository {
             this.orderDB.aggregate([
                 { $match: { status: { $in: purchasedIds }, ...window } },
                 { $unwind: '$items' },
+                // Combo lines are left out rather than exploded into their parts:
+                // they point at a combo, not a product, so grouping them here would
+                // pile every combo ever sold under a single null _id. Whether a
+                // product moves at all — including inside combos — is answered by
+                // getSoldProductIds(), which is what the dead-stock report reads.
+                { $match: { 'items.itemType': { $ne: 'COMBO' } } },
                 {
                     $group: {
                         _id: '$items.product',
                         name: { $first: '$items.name' },
                         quantity: { $sum: '$items.quantity' },
-                        revenue: { $sum: '$items.total' },
+                        // Net of discounts. Lines written before discounts existed
+                        // carry no netTotal, and their gross was what was paid.
+                        revenue: { $sum: { $ifNull: ['$items.netTotal', '$items.total'] } },
                     },
                 },
                 { $sort: { quantity: -1 } },
@@ -318,12 +326,19 @@ export class OrderRepository implements IOrderRepository {
     }
 
     async getSoldProductIds(range: IResolvedRange): Promise<string[]> {
-        const ids = await this.orderDB.distinct('items.product', {
+        const filters = {
             status: { $in: await this.statusCatalog.idsByCodes(REVENUE_STATUSES) },
             ...this.dateFilter(range),
-        });
+        };
 
-        return ids.map((id) => String(id));
+        // Both paths, then the union: a product that only ever left the shelf
+        // inside a combo did sell, and the dead-stock report must not flag it.
+        const [loose, inCombos] = await Promise.all([
+            this.orderDB.distinct('items.product', filters),
+            this.orderDB.distinct('items.components.product', filters),
+        ]);
+
+        return [...new Set([...loose, ...inCombos].map((id) => String(id)))];
     }
 
     async countOrders(range: IResolvedRange): Promise<number> {

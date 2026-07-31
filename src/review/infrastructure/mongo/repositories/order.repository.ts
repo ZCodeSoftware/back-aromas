@@ -22,7 +22,9 @@ export class OrderRepository implements IOrderRepository {
     async hasPurchasedProduct(userId: string, productId: string): Promise<boolean> {
         const count = await this.orderDB.countDocuments({
             user: userId,
-            'items.product': productId,
+            // Buying the product inside a combo counts: otherwise a customer who
+            // only ever got it as part of a bundle could not review it.
+            $or: [{ 'items.product': productId }, { 'items.components.product': productId }],
             status: { $in: await this.statusCatalog.idsByCodes(PURCHASED_STATUSES) },
         });
 

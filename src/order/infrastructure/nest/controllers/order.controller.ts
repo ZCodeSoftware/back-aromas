@@ -8,7 +8,7 @@ import { CurrentUser } from "../../../../core/infrastructure/nest/decorators/cur
 import { IOrderService } from "../../../domain/services/order.interface.service";
 import SymbolsOrder from "../../../symbols-order";
 import { FilterAllOrdersDTO, FilterOrderDTO } from "../dtos/filter-order.dto";
-import { ChangeOrderStatusDTO, CreateOrderDTO } from "../dtos/order.dto";
+import { ChangeOrderStatusDTO, CreateOrderDTO, PreviewOrderDTO } from "../dtos/order.dto";
 
 @ApiTags('order')
 @Controller('order')
@@ -29,6 +29,26 @@ export class OrderController {
     @ApiBody({ type: CreateOrderDTO, description: 'Payment and shipping data to confirm the cart' })
     async create(@CurrentUser('_id') userId: string, @Body() body: CreateOrderDTO) {
         return this.orderService.create(userId, body);
+    }
+
+    /**
+     * Declared before `:id` so the literal route wins the match. A POST because it
+     * carries a body and, unlike the GETs here, must never be cached: the total it
+     * returns depends on promotions that expire.
+     */
+    @Post('preview')
+    @HttpCode(200)
+    @UseGuards(AuthGuards)
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({
+        status: 200,
+        description:
+            'Prices the cart without creating anything. A coupon that cannot be applied comes back as `couponError` instead of failing',
+    })
+    @ApiResponse({ status: 400, description: 'Empty cart' })
+    @ApiBody({ type: PreviewOrderDTO, description: 'Coupon and shipping to include in the quote' })
+    async preview(@CurrentUser('_id') userId: string, @Body() body: PreviewOrderDTO) {
+        return this.orderService.preview(userId, body);
     }
 
     @Get('me')

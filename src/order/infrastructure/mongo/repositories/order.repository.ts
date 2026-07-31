@@ -30,6 +30,8 @@ const ORDER_POPULATE = [
     { path: 'status', select: 'code name _id' },
     { path: 'paymentMethod', select: 'name _id' },
     { path: 'items.product', select: 'name images _id' },
+    { path: 'items.combo', select: 'name images _id' },
+    { path: 'items.components.product', select: 'name images _id' },
     { path: 'soldBy', select: 'firstName lastName _id' },
     // The buyer behind an online order: without this the listings can only show a
     // raw id, since those orders carry no `customer` snapshot of their own.
@@ -133,7 +135,9 @@ export class OrderRepository implements IOrderRepository {
     async hasPurchasedProduct(userId: string, productId: string): Promise<boolean> {
         const count = await this.orderDB.countDocuments({
             user: userId,
-            'items.product': productId,
+            // Buying the product inside a combo counts: otherwise a customer who
+            // only ever got it as part of a bundle could not review it.
+            $or: [{ 'items.product': productId }, { 'items.components.product': productId }],
             status: { $in: await this.catOrderStatusRepository.idsByCodes(PURCHASED_STATUSES) },
         });
 

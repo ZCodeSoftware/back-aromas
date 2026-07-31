@@ -6,7 +6,7 @@ import { Identifier } from '../../../core/domain/value-objects/identifier';
 import { OrderChannel } from '../enum/order-channel.enum';
 import { ALLOWED_TRANSITIONS, OrderStatus } from '../enum/order-status.enum';
 import { ShippingType } from '../enum/shipping-type.enum';
-import { IOrderStatusRef } from '../types/order.type';
+import { IOrderStatusRef, IStockLine } from '../types/order.type';
 import { OrderItemModel } from './order-item.model';
 
 export class OrderModel extends BaseModel {
@@ -18,6 +18,9 @@ export class OrderModel extends BaseModel {
   private _user: any;
   private _items: OrderItemModel[] = [];
   private _subTotalPrice = 0;
+  private _discountTotal = 0;
+  private _appliedPromotions: any[] = [];
+  private _coupon?: string;
   private _shippingPrice = 0;
   private _totalPrice = 0;
   private _paymentMethod: any;
@@ -68,8 +71,28 @@ export class OrderModel extends BaseModel {
     return this._totalPrice;
   }
 
+  get discountTotal(): number {
+    return this._discountTotal;
+  }
+
+  /**
+   * Product units this order moved, with every combo flattened into the
+   * components behind it. Stock reservation reads this, never `items`: a combo
+   * line points at a combo, and combos have no stock of their own.
+   */
+  stockLines(): IStockLine[] {
+    return this._items.flatMap((item) => item.stockLines);
+  }
+
   addItem(item: OrderItemModel): void {
     this._items.push(item);
+    this.recalculateTotals();
+  }
+
+  /** Records what the pricing engine took off, at order level. */
+  setPromotions(appliedPromotions: any[], coupon?: string): void {
+    this._appliedPromotions = appliedPromotions ?? [];
+    this._coupon = coupon;
     this.recalculateTotals();
   }
 
@@ -86,9 +109,14 @@ export class OrderModel extends BaseModel {
     this._paymentMethod = typeof paymentMethod?.toJSON === 'function' ? paymentMethod.toJSON() : paymentMethod;
   }
 
+  /**
+   * The subtotal stays gross so a line always reads `unitPrice * quantity`;
+   * discounts are a separate figure, and shipping is never discounted.
+   */
   recalculateTotals(): void {
     this._subTotalPrice = round2(this._items.reduce((acc, item) => acc + item.total, 0));
-    this._totalPrice = round2(this._subTotalPrice + this._shippingPrice);
+    this._discountTotal = round2(this._items.reduce((acc, item) => acc + item.discount, 0));
+    this._totalPrice = round2(this._subTotalPrice - this._discountTotal + this._shippingPrice);
   }
 
   /**
@@ -124,6 +152,9 @@ export class OrderModel extends BaseModel {
       user: this._user,
       items: this._items.map((item) => item.toJSON()),
       subTotalPrice: this._subTotalPrice,
+      discountTotal: this._discountTotal,
+      appliedPromotions: this._appliedPromotions,
+      coupon: this._coupon ?? null,
       shippingPrice: this._shippingPrice,
       totalPrice: this._totalPrice,
       paymentMethod: this._paymentMethod,
@@ -199,6 +230,11 @@ export class OrderModel extends BaseModel {
     newOrder._user = order.user;
     newOrder._items = order.items ? order.items.map((item: any) => OrderItemModel.hydrate(item)) : [];
     newOrder._subTotalPrice = order.subTotalPrice ?? 0;
+    // Orders predating discounts carry no such field, and zero leaves their
+    // stored total exactly as it was.
+    newOrder._discountTotal = order.discountTotal ?? 0;
+    newOrder._appliedPromotions = order.appliedPromotions ?? [];
+    newOrder._coupon = order.coupon ?? undefined;
     newOrder._shippingPrice = order.shippingPrice ?? 0;
     newOrder._totalPrice = order.totalPrice ?? 0;
     newOrder._paymentMethod = order.paymentMethod;
